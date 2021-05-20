@@ -1,0 +1,51 @@
+#+TITLE: RALI" "1" "2021-05-18" "GNU 
+#+EXPORT_FILE_NAME: rali.1.man
+#+MAN_CLASS_OPTIONS: :section-id "RALI.0.1.0" 
+* NAME
+  (Rus) Arch Linux Installer
+* SYNOPSIS
+#+BEGIN_MAN
+.nf
+#+END_MAN
+rali
+rali --PACKAGE_LIST="package_lists.txt"
+#+BEGIN_MAN
+.fi
+#+END_MAN
+* DESCRIPTION
+rali is a cli Arch Linux configuration tool written in rust.
+It aims to make installing Arch Linux as painless as possible;
+any of the options other than the basic install require some knowledge of how to install and configure an Arch system.
+See rali.conf(5) for more details
+* OPTIONS 
+  *--PACKAGE_LIST=*​/<file>/​\\ 
+  Replaces the default package list with a user specified one.
+#+BEGIN_MAN
+.PP
+#+END_MAN
+  *--conf=*​/<file>/\\  
+  Use an alternate config file.
+#+BEGIN_MAN
+.PP
+#+END_MAN
+  *--conf-gen* /path,/to,/file/\\
+  Parses your system and generates a basic rali.conf file for you.
+#+BEGIN_MAN
+.PP
+#+END_MAN
+  *--UEFI=*​/y,/n/\\
+  If set to y configures your system for UEFI. For BIOS set to n or leave blank
+#+BEGIN_MAN
+.PP
+#+END_MAN
+  *-E*\\
+  If pressent encription will be used
+** Encryption (-E)
+   *-l*
+   rali will create a single boot partitoin and a LUKS encrypted /root partition
+#+BEGIN_MAN
+.PP
+#+END_MAN
+   *-L*
+   rali will create a single boot partition and an LVM encrypted volume with virtual volums ontop.
+

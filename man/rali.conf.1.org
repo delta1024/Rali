@@ -1,0 +1,26 @@
+#+TITLE: RALI.CONF" "1" "2021-05-18" "GNU
+#+EXPORT_FILE_NAME: rali.conf.1.man
+#+MAN_CLASS_OPTIONS: :section-id "RALI.0.1.0"
+* NAME
+  (Rust) Arch Linux Installer Configuration Guide
+* Description
+  This man page descripts the process for writing a confgiuration file for rali. This file aims to ensure a consistant installaltion experiance accross arch machines or just between reinstalaitons.
+* System Configuration Options
+  *[rali]*\\
+  Configure instalation options. Command line swithces override the options set in this file.
+#+BEGIN_MAN
+.PP
+#+END_MAN
+  *[pacman.conf]*\\
+  Allows you to customise of your pacman.conf file.
+#+BEGIN_MAN
+.PP
+#+END_MAN
+  *[pacman-mirrors]*\\
+  Sets your mirror list in /etc/pacman.d/mirrorlist.
+#+BEGIN_MAN
+.PP
+#+END_MAN
+  *[encription]*\\
+  Set encription options
+

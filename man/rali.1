@@ -1,7 +1,7 @@
-.TH "RALI" "1" "2021-05-18" "RALI.0.1.0" 
+.TH "RALI" "1" "2021-05-18" "GNU" "RALI.0.1.0" 
 .SH "NAME"
 .PP
-Rust Arch Linux Installer
+(Rus) Arch Linux Installer
 .SH "SYNOPSIS"
 .nf
 .PP
@@ -10,10 +10,42 @@ rali --PACKAGE\d\s-2LIST\s+2\u="package\d\s-2lists.txt\s+2\u"
 .fi
 .SH "DESCRIPTION"
 .PP
-rali is a cli Arch Linux installer written in rust.
+rali is a cli Arch Linux configuration tool written in rust.
 It aims to make installing Arch Linux as painless as possible;
 any of the options other than the basic install require some knowledge of how to install and configure an Arch system.
+See rali.conf(5) for more details
 .SH "OPTIONS"
 .PP
-\fB--PACKAGE\d\s-2LIST\s+2\u=\fP​\fI<file>\fP​ 
+\fB--PACKAGE\d\s-2LIST\s+2\u=\fP​\fI<file>\fP​
+.br
 Replaces the default package list with a user specified one.
+.PP
+.PP
+\fB--conf=\fP​\fI<file>\fP
+.br
+Use an alternate config file.
+.PP
+.PP
+\fB--conf-gen\fP \fIpath,/to,/file\fP
+.br
+parses your system and generates a basic rali.conf file for you.
+.PP
+.PP
+\fB--UEFI=\fP​\fIy,/n\fP
+.br
+if set to yes configures your system for UEFI
+.PP
+.PP
+\fB-E\fP
+.br
+if pressent encription will be used
+.SS "Encryption (-E)"
+.PP
+\fB-l\fP
+.br
+rali will create a single boot partitoin and a LUKS encrypted /root partition
+.PP
+.PP
+\fB-L\fP
+.br
+rali will create a single boot partition and an LVM encrypted volume with virtual volums ontop.
