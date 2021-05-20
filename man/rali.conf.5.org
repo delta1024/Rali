@@ -14,7 +14,7 @@
 # you should have received a copy of the gnu general public license
 # along with this program.  if not, see <https://www.gnu.org/licenses/>.
 
-#+TITLE: RALI.CONF" "5" "2021-05-20" "GNU
+#+TITLE: RALI.CONF" "5" "2021-05-20" "GNU/Linux
 #+EXPORT_FILE_NAME: rali.conf.5.man
 #+MAN_CLASS_OPTIONS: :section-id "RALI.0.1.0"
 * NAME
@@ -22,21 +22,17 @@
 * Description
   This man page descripts the process for writing a confgiuration file for rali. This file aims to ensure a consistant installaltion experiance accross arch machines or just between reinstalaitons.
 * System Configuration Options
-  *[rali]*\\
-  Configure instalation options. Command line swithces override the options set in this file.
-#+BEGIN_MAN
+** [rali]
+  Configure instalation options. Command line switches override the options set in this file.
+  #+BEGIN_MAN
 .PP
-#+END_MAN
-  *[pacman.conf]*\\
+  #+END_MAN
+  *uefi* = /"[true/false]"/
+  sets whether or not rali configures the system for uefi or not.
+** [pacman.conf]
   Allows you to customise of your pacman.conf file.
-#+BEGIN_MAN
-.PP
-#+END_MAN
-  *[pacman-mirrors]*\\
+** [pacman_mirrors]
   Sets your mirror list in /etc/pacman.d/mirrorlist.
-#+BEGIN_MAN
-.PP
-#+END_MAN
-  *[encription]*\\
+** [encription]
   Set encription options
 

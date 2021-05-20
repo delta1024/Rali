@@ -13,7 +13,28 @@
 //
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>.
-mod toml_opps;
-fn main() {
-    println!("Hello, Arch Linux!");
+use serde::Deserialize;
+#[derive(Deserialize)]
+struct Config {
+    rali: Rali,
+    pacman_conf: PacmanConf,
+    pacman_mirrors: PacmanMirrors,
+    encryption: Encryption,
 }
+#[derive(Deserialize)]
+struct Rali {
+    uefi: bool,
+    
+}
+
+#[derive(Deserialize)]
+#[allow(unused_variables)]
+struct PacmanConf {}
+
+#[derive(Deserialize)]
+#[allow(unused_variables)]
+struct PacmanMirrors {}
+
+#[derive(Deserialize)]
+#[allow(unused_variables)]
+struct Encryption {}
