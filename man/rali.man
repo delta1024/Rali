@@ -1,0 +1,19 @@
+.TH "RALI" "1" "2021-05-18" "RALI.0.1.0" 
+.SH "NAME"
+.PP
+Rust Arch Linux Installer
+.SH "SYNOPSIS"
+.nf
+.PP
+rali
+rali --PACKAGE\d\s-2LIST\s+2\u="package\d\s-2lists.txt\s+2\u"
+.fi
+.SH "DESCRIPTION"
+.PP
+rali is a cli Arch Linux installer written in rust.
+It aims to make installing Arch Linux as painless as possible;
+any of the options other than the basic install require some knowledge of how to install and configure an Arch system.
+.SH "OPTIONS"
+.PP
+\fB--PACKAGE\d\s-2LIST\s+2\u=\fP​\fI<file>\fP​ 
+Replaces the default package list with the custom specified one.

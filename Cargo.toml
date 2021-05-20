@@ -1,0 +1,10 @@
+[package]
+name = "archInstaller"
+version = "0.1.0"
+authors = ["Jacob Stannix <jakestannix at gmail dot com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "rali"
+[dependencies]
