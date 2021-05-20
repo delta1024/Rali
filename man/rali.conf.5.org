@@ -14,8 +14,8 @@
 # you should have received a copy of the gnu general public license
 # along with this program.  if not, see <https://www.gnu.org/licenses/>.
 
-#+TITLE: RALI.CONF" "1" "2021-05-18" "GNU
-#+EXPORT_FILE_NAME: rali.conf.1.man
+#+TITLE: RALI.CONF" "5" "2021-05-20" "GNU
+#+EXPORT_FILE_NAME: rali.conf.5.man
 #+MAN_CLASS_OPTIONS: :section-id "RALI.0.1.0"
 * NAME
   (Rust) Arch Linux Installer Configuration Guide
