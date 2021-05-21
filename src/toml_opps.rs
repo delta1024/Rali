@@ -21,10 +21,10 @@ struct Config {
     pacman_mirrors: PacmanMirrors,
     encryption: Encryption,
 }
+
 #[derive(Deserialize)]
 struct Rali {
     uefi: bool,
-    
 }
 
 #[derive(Deserialize)]

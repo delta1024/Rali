@@ -1,5 +1,5 @@
-// <rali - rust arch linux installer>
-// copyright (c) <2021>  <Jacob Stannix>
+// <rali - (Rust) Arch Linux Installer>
+// Copyright (c) <2021>  <Jacob Stannix>
 //
 // this program is free software: you can redistribute it and/or modify
 // it under the terms of the gnu general public license as published by
