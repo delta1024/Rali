@@ -1,0 +1,797 @@
+#+TITLE: Arch Linux installation procedure for Think-Pad 
+#+AUTHOR: Jacob Stannix 
+
+* Description
+  This document contains the procedure to install arch Linux on my laptop; complete with drive encryption, working Bluetooth, audio, WiFi, auto-login, an extra backspace where the CAPS LOCK should be, a complete emacs config, and working NAS connectivity.
+* DONE Pre-installation
+** DONE Acquire an installation image
+Visit the [[https://archlinux.org/download/][Download]] page and, depending on how you want to boot, acquire the ISO file or a net-boot image, and the
+respective GnuPG signature. 
+
+Verify signature
+
+It is recommended to verify the image signature before use, especially when downloading from an HTTP mirror,
+where downloads are generally prone to be intercepted to serve malicious images. 
+
+On a system with GnuPG installed, do this by downloading the PGP signature (under Checksums in the Download
+page) to the ISO directory, and verifying it with: 
+
+#+begin_src sh
+gpg --keyserver-options auto-key-retrieve --verify archlinux-version-x86_64.iso.sig
+#+end_src
+
+Alternatively, from an existing Arch Linux installation run: 
+#+begin_src sh
+pacman-key -v archlinux-version-x86_64.iso.sig
+#+end_src
+Note: 
+
+ * The signature itself could be manipulated if it is downloaded from a mirror site, instead of from archlinux.org as
+ above. In this case, ensure that the public key, which is used to decode the signature, is signed by another,
+ trustworthy key. The gpg command will output the fingerprint of the public key.
+ * Another method to verify the authenticity of the signature is to ensure that the public key's fingerprint is identical
+ to the key fingerprint of the Arch Linux developer who signed the ISO-file. See Wikipedia:Public-key cryptography
+ for more information on the public-key process to authenticate keys.
+
+** DONE Prepare the installation image
+The installation image can be supplied to the target machine via a USB flash drive, an optical disc or a network with
+PXE: follow the appropriate article to prepare yourself an installation medium from the chosen image. 
+
+** DONE Boot the live environment
+Note: Arch Linux installation images do not support Secure Boot. You will need to disable Secure Boot to boot the
+installation medium. If desired, Secure Boot can be set up after completing the installation.
+
+1 Point the current boot device to the one which has the Arch Linux installation medium. Typically it is achieved by
+ pressing a key during the POST phase, as indicated on the splash screen. Refer to your motherboard's manual for
+ details.
+2 When the installation medium's boot loader menu appears, select Arch Linux install medium and press Enter to
+ enter the installation environment. 
+ Tip: The installation image uses systemd-boot for booting in UEFI mode and syslinux for booting in BIOS mode. See
+ README.bootparams for a list of boot parameters.
+3 You will be logged in on the first virtual console as the root user, and presented with a Zsh shell prompt.
+
+To switch to a different console—for example, to view this guide with Lynx alongside the installation—use the
+Alt+arrow shortcut. To edit configuration files, mcedit(1), nano and vim are available. See packages.x86_64 for a list
+of the packages included in the installation medium. 
+** DONE Verify the Boot Mode
+To verify the boot mode, list the efivars directory: 
+
+#+begin_src sh
+ls /sys/firmware/efi/efivars
+#+end_src
+
+If the command shows the directory without error, then the system is booted in UEFI mode. If the directory does not
+exist, the system may be booted in BIOS (or CSM) mode. If the system did not boot in the mode you desired, refer to
+your motherboard's manual. 
+
+** DONE Connect to the internet
+To set up a network connection in the live environment, go through the following steps: 
+
+ * Ensure your network interface is listed and enabled, for example with ip-link(8): 
+
+#+begin_src sh
+ip link
+#+end_src
+
+ * For wireless and WWAN, make sure the card is not blocked with rfkill.
+ * Connect to the network: 
+
+ * Ethernet—plug in the cable.
+ * Wi-Fi—authenticate to the wireless network using iwctl.
+ * Mobile broadband modem—connect to the mobile network with the mmcli utility.
+
+ * Configure your network connection: 
+
+ * DHCP: dynamic IP address and DNS server assignment (provided by systemd-networkd and systemd-resolved)
+ should work out of the box for Ethernet, WLAN and WWAN network interfaces.
+ * Static IP address: follow Network configuration#Static IP address.
+
+ * The connection may be verified with ping: 
+#+begin_src sh
+ ping archlinux.org
+#+end_src
+
+Note: In the installation image, systemd-networkd, systemd-resolved, iwd and ModemManager are preconfigured and
+enabled by default. That will not be the case for the installed system.
+** DONE Update the system clock
+Use timedatectl(1) to ensure the system clock is accurate: 
+
+#+begin_src sh
+timedatectl set-ntp true
+#+end_src
+
+To check the service status, use timedatectl status. 
+** DONE Partition the Disks
+When recognized by the live system, disks are assigned to a block device such as /dev/sda, /dev/nvme0n1 or
+/dev/mmcblk0. To identify these devices, use lsblk or fdisk. 
+
+#+begin_src sh
+fdisk -l
+#+end_src
+
+Results ending in rom, loop or airoot may be ignored. 
+
+The following partitions are required for a chosen device: 
+
+ * One partition for the root directory /.
+ * For booting in UEFI mode: an EFI system partition.
+
+If you want to create any stacked block devices for LVM, system encryption or RAID, do it now. 
+   * Prior to creating any partitions, you should inform yourself about the importance and methods to securely erase the disk, described in dm-crypt/Drive preparation.
+
+   * Then create the needed partitions, at least one for / (e.g. /dev/sda2) and /boot (/dev/sda1). See Partitioning.
+     
+*** Partition Table
+   | /                        | <                        | >     |   |
+   | Boot Partition           |                          |       |   |
+   | (EFI)                    | root partition           |       |   |
+   |                          |                          |       |   |
+   | /boot                    | /                        |       |   |
+   |                          |                          |       |   |
+   | 512mb                    | /dev/mapper/cryptroot    |       |   |
+   |                          |                          |       |   |
+   | /dev/sda1                | /dev/sda2                |       |   |
+   |                          |                          |       |   |
+   | ------------------------ | ------------------------ | ----- |   |
+   |                          | LUKS2 Encrypted System   |       |   |
+    
+*** DONE Prepareing non-boot partitions 
+The following commands create and mount the encrypted root partition. They correspond to the procedure described in detail in dm-crypt/Encrypting a non-root file system#Partition (which, despite the title, can be applied to root partitions, as long as mkinitcpio and the boot loader are correctly configured). If you want to use particular non-default encryption options (e.g. cipher, key length), see the encryption options before executing the first command. For information on changing the default sector size, see dm-crypt/Device encryption#Sector size.
+    #+begin_src sh
+ cryptsetup -y -v luksFormat /dev/sda2
+ cryptsetup open /dev/sda2 cryptroot
+ mkfs.ext4 /dev/mapper/cryptroot
+ mount /dev/mapper/cryptroot /mnt
+    #+end_src
+Check the mapping worked as intended.
+#+begin_src sh
+umount /mnt
+cryptsetup close cryptroot
+cryptsetup open /dev/sda2 cryptroot
+mount /dev/mapper/cryptroot /mnt
+#+end_src
+If you created separate partitions (e.g. /home), these steps have to be adapted and repeated for all of them, except for /boot. See dm-crypt/Encrypting a non-root file system#Automated unlocking and mounting on how to handle additional partitions at boot.
+
+Note that each blockdevice requires its own passphrase. This may be inconvenient, because it results in a separate passphrase to be input during boot. An alternative is to use a keyfile stored in the system partition to unlock the separate partition via crypttab. See dm-crypt/Device encryption#Using LUKS to format partitions with a keyfile for instructions.
+
+*** DONE Prepairing the boot partition
+What you do have to setup is a non-encrypted /boot partition, which is needed for an encrypted root. Because we are using UEFI, ececute the following:
+#+begin_src sh
+mkfs.fat -F32 /dev/sda1
+#+end_src
+Afterwards create the diredctory for the mountpoint and mouth th epartition:
+#+begin_src sh
+mkdir /mnt/boot
+mount /dev/sda1 /mnt/boot
+#+end_src
+* DONE Instalation
+** DONE Select the mirros
+Packages to be installed must be downloaded from mirror servers, which are defined in /etc/pacman.d/mirrorlist. On the live system, after connecting to the internet, reflector updates the mirror list by choosing 20 most recently synchronized HTTPS mirrors and sorting them by download rate.[2]
+
+The higher a mirror is placed in the list, the more priority it is given when downloading a package. You may want to inspect the file to see if it is satisfactory. If it is not, edit the file accordingly, and move the geographically closest mirrors to the top of the list, although other criteria should be taken into account.
+
+This file will later be copied to the new system by pacstrap, so it is worth getting right.
+#+begin_src conf-space
+##
+## Arch Linux repository mirrorlist
+## Filtered by mirror score from mirror status page
+## Generated on 2021-05-11
+##
+
+## Canada
+Server = https://mirror.csclub.uwaterloo.ca/archlinux/$repo/os/$arch
+## Canada
+Server = http://mirror.csclub.uwaterloo.ca/archlinux/$repo/os/$arch
+## Canada
+Server = https://mirror.scd31.com/arch/$repo/os/$arch
+## Canada
+Server = https://mirror2.evolution-host.com/archlinux/$repo/os/$arch
+## Canada
+Server = http://mirror.sergal.org/archlinux/$repo/os/$arch
+## Canada
+Server = https://mirror.0xem.ma/arch/$repo/os/$arch
+## Canada
+Server = http://mirror2.evolution-host.com/archlinux/$repo/os/$arch
+## Canada
+Server = http://muug.ca/mirror/archlinux/$repo/os/$arch
+## Canada
+Server = http://mirror.its.dal.ca/archlinux/$repo/os/$arch
+## Canada
+Server = https://muug.ca/mirror/archlinux/$repo/os/$arch
+## Canada
+Server = https://mirror.sergal.org/archlinux/$repo/os/$arch
+## Canada
+Server = http://mirror.scd31.com/arch/$repo/os/$arch
+## Canada
+Server = http://archlinux.mirror.rafal.ca/$repo/os/$arch
+## Canada
+Server = http://mirror.cedille.club/archlinux/$repo/os/$arch
+## Canada
+Server = http://archlinux.mirror.colo-serv.net/$repo/os/$arch
+#+end_src
+** DONE Install essential packages
+Use the pacstrap(8) script to install the base package, Linux kernel and firmware for common hardware:
+
+#+begin_src sh
+pacstrap /mnt base base-devel linux-zen linux-firmware emacs iwd dhcpcd grub uefibootmgr man-db man-pages texinfo xorg xf86-input-libinput sudo polkit mate-polkit ssh git util-linux fuse vim 
+#+end_src
+Tip:
+You can substitute linux for a kernel package of your choice, or you could omit it entirely when installing in a container.
+You could omit the installation of the firmware package when installing in a virtual machine or container.
+The base package does not include all tools from the live installation, so installing other packages may be necessary for a fully functional base system. In particular, consider installing:
+
+ * userspace utilities for the management of file systems that will be used on the system,
+ * utilities for accessing RAID or LVM partitions,
+ * specific firmware for other devices not included in linux-firmware,
+ * software necessary for networking,
+ * a text editor,
+ * packages for accessing documentation in man and info pages: man-db, man-pages and texinfo.
+
+To install other packages or package groups, append the names to the pacstrap command above (space separated) or use pacman while chrooted into the new system. For comparison, packages available in the live system can be found in packages.x86_64.
+* DONE Configure the system
+** DONE Fstab
+Generate an fstab file (use -U or -L to define by UUID or labels, respectively):
+#+begin_src sh
+genfstab -U /mnt >> /mnt/etc/fstab
+#+end_src
+then append so it looks kinda like this
+#+begin_src conf-space
+# Static information about the filesystems.
+# See fstab(5) for details.
+
+# <file system> <dir> <type> <options> <dump> <pass>
+# /dev/nvme0n1p3
+UUID=b3ffa9c7-48f8-4a51-87a8-82c284b3934c	/         	ext4      	rw,relatime	0 1
+
+# /dev/nvme0n1p1
+UUID=9BB0-C4A9      	/efi      	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro	0 2
+
+# /dev/nvme0n1p2
+UUID=3286fecf-0c3c-4b97-860d-3af9b6382346	none      	swap      	defaults  	0 0
+# net mount
+192.168.1.68:/volume1/Documents /home/jake/NAS/Documents        nfs             defaults,_netdev,noauto,x-systemd.automount        0 0
+#+end_src
+** DONE Chroot
+   Change root into the new sytem
+   #+begin_src sh
+arch-chroot /mnt
+   #+end_src
+** DONE Time Zone
+   Set the timezone
+   #+begin_src sh
+ln -sf /usr/share/zoneinfo/Canada/Mountain  /etc/localtime
+   #+end_src
+** DONE Localization
+Edit /etc/locale.gen and uncomment en_US.UTF-8 UTF-8 and other needed locales. Generate the locales by running:
+#+begin_src sh
+locale-gen
+#+end_src
+Create the loal.conf file, and set the LANG variable accordingly
+/etc/locale.conf
+#+begin_src conf-space 
+LANG=en_CA.UTF-8
+#+end_src
+*** DONE replace CapsLock with Backsace
+    /etc/X11/xorg.conf.d/90-custom-kbd.conf
+    #+begin_src conf-space
+Section "InputClass"
+    Identifier "keyboard defaults"
+    MatchIsKeyboard "on"
+
+    Option "XkbOptions" "caps:backspace"
+EndSection
+    #+end_src
+** DONE Touchpad
+   /usr/share/X11/xorg.conf.d/40-libinput.conf
+   #+begin_src sh
+ln -s /usr/share/X11/xorg.conf.d/40-libinput.conf /etc/X11/xorg.conf.d/40-libinput.conf
+   #+end_src
+   /etc/X11/xorg.conf.d/30-touchpad.conf
+   #+begin_src conf
+Section "InputClass"
+    Identifier "touchpad"
+    Driver "libinput"
+    MatchIsTouchpad "on"
+    Option "Tapping" "on"
+    Option "TappingButtonMap" "lrm"
+EndSection
+   #+end_src
+** DONE Network configuration
+   Create the hostname file
+   /etc/hostname
+   #+begin_src conf
+Cortex
+   #+end_src
+   add matching entries to hosts(5):
+   /etc/hosts
+   #+begin_src conf
+127.0.0.1     localhost
+::1           localhost
+127.0.1.1     Cortex.localdomain Cortex
+   #+end_src
+   run the following commands to set up the working network files
+   #+begin_src sh
+systemctl enable iwd
+systemctl enable dhcpcd
+systemctl enable bluetooth
+systemctl enable polkit
+   #+end_src
+** DONE Initramfs
+Creating a new initramfs is usually not required, because mkinitcpio was run on installation of the kernel package with pacstrap.
+
+For LVM, system encryption or RAID, modify mkinitcpio.conf(5) and recreate the initramfs image:
+*** DONE Configure mkinitcpio
+Add the keyboard, keymap and encrypt hooks to mkinitcpio.conf. If the default US keymap is fine for you, you can omit the keymap hook.
+#+begin_src conf-space
+HOOKS=(base udev autodetect keyboard keymap consolefont modconf block encrypt filesystems fsck)
+#+end_src
+
+#+begin_src sh
+mkinitcpio -P
+#+end_src
+** DONE Root password
+
+   #+begin_src sh
+passwd
+   #+end_src
+** DONE Boot loader
+*** DONE Installation
+First, install the packages grub and efibootmgr: GRUB is the bootloader while efibootmgr is used by the GRUB installation script to write boot entries to NVRAM.
+
+Then follow the below steps to install GRUB:
+
+    1. Mount the EFI system partition and in the remainder of this section, substitute esp with its mount point.
+    2. Choose a bootloader identifier, here named GRUB. A directory of that name will be created in esp/EFI/ to store the EFI binary and this is the name that will appear in the UEFI boot menu to identify the GRUB boot entry.
+    3. Execute the following command to install the GRUB EFI application grubx64.efi to esp/EFI/GRUB/ and install its modules to /boot/grub/x86_64-efi/.
+  #+begin_src sh
+grub-install --target=x86_64-efi --efi-directory=esp --bootloader-id=GRUB
+  #+end_src
+After the above install completed the main GRUB directory is located at /boot/grub/. Note that grub-install also tries to create an entry in the firmware boot manager, named GRUB in the above example -- this will, however, fail if your boot entries are full; use efibootmgr to remove unnecessary entries.
+
+for the Boothloader id use BOOTx64
+ * Tip: If you use the option --removable then GRUB will be installed to esp/EFI/BOOT/BOOTX64.EFI (or esp/EFI/BOOT/BOOTIA32.EFI for the i386-efi target) and you will have the additional ability of being able to boot from the drive in case EFI variables are reset or you move the drive to another computer. Usually you can do this by selecting the drive itself similar to how you would using BIOS. If dual booting with Windows, be aware Windows usually places an EFI executable there, but its only purpose is to recreate the UEFI boot entry for Windows.
+*** DONE Configure the boot loader
+In order to unlock the encrypted root partition at boot, the following kernel parameters need to be set by the boot loader:
+#+begin_src space-conf
+cryptdevice=UUID=device-UUID:cryptroot root=/dev/mapper/cryptroot
+#+end_src
+The device-UUID refers to the UUID of /dev/sda2. See Persistent block device naming for details.
+
+Edit /etc/default/grub and append your kernel options between the quotes in the GRUB_CMDLINE_LINUX_DEFAULT line:
+    #+begin_src conf-space
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+    #+end_src
+And then automatically re-generate the grub.cfg file with:
+#+begin_src sh
+grub-mkconfig -o /boot/grub/grub.cfg
+#+end_src
+*** DONE Install micro-code
+    #+begin_src sh
+pacman -S amd-ucode
+    #+end_src
+* DONE reboot
+Exit the chroot environment by typing exit or pressing Ctrl+d.
+
+Optionally manually unmount all the partitions with umount -R /mnt: this allows noticing any "busy" partitions, and finding the cause with fuser(1).
+
+Finally, restart the machine by typing reboot: any partitions still mounted will be automatically unmounted by systemd. Remember to remove the installation medium and then login into the new system with the root account.
+* DONE Post-installation
+** DONE System Administration
+This section deals with administrative tasks and system management.
+*** DONE Users and Groups
+A new installation leaves you with only the superuser account, better known as "root". Logging in as root for prolonged periods of time, possibly even exposing it via SSH on a server, is insecure. Instead, you should create and use unprivileged user account(s) for most tasks, only using the root account for system administration. See Users and groups#User management for details.
+
+Users and groups are a mechanism for access control; administrators may fine-tune group membership and ownership to grant or deny users and services access to system resources. Read the Users and groups article for details and potential security risks.
+
+To list users currently logged on the system, the who command can be used. To list all existing user accounts including their properties stored in the user database, run passwd -Sa as root. See passwd(1) for the description of the output format.
+
+*** DONE User Managment
+To list users currently logged on the system, the who command can be used. To list all existing user accounts including their properties stored in the user database, run passwd -Sa as root. See passwd(1) for the description of the output format.
+
+To add a new user, use the useradd command:
+#+begin_src sh
+useradd -m -G additial_groups -s login_shell username
+#+end_src
+*-m/ --create-home*
+creates the user home directory as /home/username. Within their home directory, a non-root user can write files, delete them, install programs, and so on.
+
+*-G/ --groups*
+introduces a list of supplementary groups which the user is also a member of. Each group is separated from the next by a comma, with no intervening spaces. The default is for the user to belong only to the initial group.
+
+*-s/ --shell*
+defines the path and file name of the user's default login shell. After the boot process is complete, the default login shell is the one specified here. Ensure the chosen shell package is installed if choosing something other than Bash.
+
+*Warning:* In order to be able to log in, the login shell must be one of those listed in /etc/shells, otherwise the PAM module pam_shell will deny the login request. In particular, do not use the /usr/bin/bash path instead of /bin/bash, unless it is properly configured in /etc/shells; see FS#33677.
+
+Create a password for user with:
+#+begin_src sh 
+passwd user
+#+end_src
+** DONE Privilege Elevation
+The following command line utilities allow running commands or starting an interactive shell as another user (e.g. root).
+ * su — Allows to assume the identity of another user as long as you know the target user's password. root can assume other identities without needing a password.
+https://github.com/karelzak/util-linux || util-linux (a dependency of base)
+ * sudo — Allows a system administrator to delegate authority to give certain users (or groups of users) the ability to run some (or all) commands as root or another user while providing an audit trail of the commands and their arguments. In default configuration only usable by root .
+https://www.sudo.ws/sudo/ || sudo
+ * pkexec(1) — A Polkit application that allows an authorized user to run commands or an interactive shell as another user. Configured using Polkit rules.
+https://gitlab.freedesktop.org/polkit/polkit/ || polkit
+*** DONE Configure SSH
+If you do not have an existing SSH key pair, generate a new one.
+
+1. Open a terminal.
+2. Type ssh-keygen -t followed by the key type and an optional comment. This comment is included in the .pub file that’s created. You may want to use an email address for the comment.
+
+For example, for ED25519:
+
+#+begin_src sh
+ssh-keygen -t ed25519 -C "<comment>"
+#+end_src
+
+3. [@3] Press Enter. Output similar to the following is displayed:
+
+#+begin_src sh
+Generating public/private ed25519 key pair.
+Enter file in which to save the key (/home/user/.ssh/id_ed25519):
+#+end_src
+
+4. [@4] Accept the suggested filename and directory, unless you are generating a deploy key or want to save in a specific directory where you store other keys.
+
+You can also dedicate the SSH key pair to a specific host.
+
+5. [@5] Specify a passphrase:
+#+begin_src sh
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+#+end_src
+
+6. [@6] A confirmation is displayed, including information about where your files are stored.
+A public and private key are generated. Add the public SSH key to your GitLab account and keep the private key secure.
+
+** DONE Graphical User Interface
+*** DONE Install dwm
+    #+begin_src sh
+mkdir /usr/src/dwm
+git clone https://gitlab.com/Delta1024/Dotfiles.git dwm
+chown -R jake dwm/
+    #+end_src
+** DONE Auto Login
+Configuration relies on systemd drop-in files to override the default parameters passed to agetty.
+
+Configuration differs for virtual versus serial consoles. In most cases, you want to set up automatic login on a virtual console, (whose device name is ttyN, where N is a number). The configuration of automatic login for serial consoles will be slightly different. Device names of the serial consoles look like ttySN, where N is a number.
+
+*Virtual console*
+Edit the provided unit either manually by creating the following drop-in snippet, or by running systemctl edit getty@tty1 and pasting its content:
+
+#+begin_src conf-unix
+[Service]
+ExecStart=
+ExecStart=-/user/bin/agetty --autologin jake --noclear %I $TERM
+Type=simple
+#+end_src
+** DONE Power Managment
+   /etc/systemd/logind.conf
+   #+begin_src conf-space
+#  This file is part of systemd.
+#
+#  systemd is free software; you can redistribute it and/or modify it under the
+#  terms of the GNU Lesser General Public License as published by the Free
+#  Software Foundation; either version 2.1 of the License, or (at your option)
+#  any later version.
+#
+# Entries in this file show the compile time defaults. Local configuration
+# should be created by either modifying this file, or by creating "drop-ins" in
+# the system.conf.d/ subdirectory. The latter is generally recommended.
+# Defaults can be restored by simply deleting this file and all drop-ins.
+#
+# Use 'systemd-analyze cat-config systemd/logind.conf' to display the full config.
+#
+# See logind.conf(5) for details.
+
+[Login]
+#NAutoVTs=6
+#ReserveVT=6
+#KillUserProcesses=no
+#KillOnlyUsers=
+#KillExcludeUsers=root
+#InhibitDelayMaxSec=5
+#UserStopDelaySec=10
+#HandlePowerKey=poweroff
+#HandleSuspendKey=suspend
+#HandleHibernateKey=hibernate
+HandleLidSwitch=suspend
+#HandleLidSwitchExternalPower=suspend
+#HandleLidSwitchDocked=ignore
+#HandleRebootKey=reboot
+#PowerKeyIgnoreInhibited=no
+#SuspendKeyIgnoreInhibited=no
+#HibernateKeyIgnoreInhibited=no
+#LidSwitchIgnoreInhibited=yes
+#RebootKeyIgnoreInhibited=no
+#HoldoffTimeoutSec=30s
+#IdleAction=ignore
+#IdleActionSec=30min
+#RuntimeDirectorySize=10%
+#RuntimeDirectoryInodes=400k
+#RemoveIPC=yes
+#InhibitorsMax=8192
+#SessionsMax=8192
+   #+end_src
+** DONE Networking
+*** DONE Setting up a Firewall 
+    #+begin_src sh
+pacman -S nftables
+systemctl enable nftables
+    #+end_src
+
+** DONE Appearance
+  [[https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/FiraCode.zip][FiraCode Nerd font]] 
+  extract to /usr/share/fonts/FiraCode
+  then run:
+  #+begin_src sh
+fc-cache 
+  #+end_src
+  install icons from the repo
+** DONE Install non-esseential packages
+*** DONE Pacman
+   copy the following to a file:
+   #+begin_src text
+alacritty
+amd-ucode
+autoconf
+automake
+base
+binutils
+bison
+bluez
+bluez-utils
+breeze-icons
+cbatticon
+dhcpcd
+dunst
+efibootmgr
+emacs
+fakeroot
+firefox
+flex
+gcc
+git
+grub
+htop
+ispell
+iwd
+linux-firmware
+linux-zen
+lxappearance
+m4
+make
+man-pages
+mpv
+neovim
+nfs-utils
+openssh
+pass
+patch
+pavucontrol
+pcmanfm
+perl-file-mimeinfo
+picom
+pkgconf
+pulseaudio
+pulseaudio-bluetooth
+rustup
+screen
+starship
+screen
+sudo
+sxhkd
+sxiv
+texinfo
+unzip
+which
+xclip
+xf86-video-vesa
+xorg-bdftopcf
+xorg-docs
+xorg-fonts-100dpi
+xorg-fonts-75dpi
+xorg-fonts-encodings
+xorg-font-util
+xorg-iceauth
+xorg-mkfontscale
+xorg-server
+xorg-server-common
+xorg-server-devel
+xorg-server-xephyr
+xorg-server-xnest
+xorg-server-xvfb
+xorg-sessreg
+xorg-setxkbmap
+xorg-smproxy
+xorg-x11perf
+xorg-xauth
+xorg-xbacklight
+xorg-xcmsdb
+xorg-xcursorgen
+xorg-xdpyinfo
+xorg-xdriinfo
+xorg-xev
+xorg-xgamma
+xorg-xhost
+xorg-xinit
+xorg-xinput
+xorg-xkbcomp
+xorg-xkbevd
+xorg-xkbutils
+xorg-xkill
+xorg-xlsatoms
+xorg-xlsclients
+xorg-xmodmap
+xorg-xpr
+xorg-xprop
+xorg-xrandr
+xorg-xrdb
+xorg-xrefresh
+xorg-xset
+xorg-xsetroot
+xorg-xvinfo
+xorg-xwayland
+xorg-xwd
+xorg-xwininfo
+xorg-xwud
+xwallpaper
+youtube-dl
+zathura
+zathura-pdf-mupdf
+zip
+zsh
+zsh-syntax-highlighting
+   #+end_src
+   now run:
+   #+begin_src sh
+pacman -S --needed - < pkglist.txt
+   #+end_src
+*** DONE paru
+    Install paru
+    #+begin_src sh
+git clone https://aur.archlinux.org/paru.git
+cd paru
+makepkg -si
+    #+end_src
+    copy the followng to a file and run diff on it and pkg list. install missing apps with paru
+    #+begin_src text
+alacritty
+amd-ucode
+autoconf
+automake
+base
+binutils
+bison
+bluez
+bluez-utils
+brave-bin
+breeze-icons
+cbatticon
+dhcpcd
+dunst
+efibootmgr
+emacs
+fakeroot
+firefox
+flex
+gcc
+git
+grub
+gtk-theme-bubble-dark-red-git
+htop
+ispell
+iwd
+lf-bin
+linux-firmware
+linux-zen
+lxappearance
+m4
+make
+man-pages
+mpv
+neovim
+nfs-utils
+openssh
+paru
+pass
+patch
+pavucontrol
+pcmanfm
+perl-file-mimeinfo
+picom
+pkgconf
+pulseaudio
+pulseaudio-bluetooth
+rustup
+screen
+starship
+sudo
+screen
+sxhkd
+sxiv
+texinfo
+unzip
+which
+xclip
+xf86-video-vesa
+xorg-bdftopcf
+xorg-docs
+xorg-font-util
+xorg-fonts-100dpi
+xorg-fonts-75dpi
+xorg-fonts-encodings
+xorg-iceauth
+xorg-mkfontscale
+xorg-server
+xorg-server-common
+xorg-server-devel
+xorg-server-xephyr
+xorg-server-xnest
+xorg-server-xvfb
+xorg-sessreg
+xorg-setxkbmap
+xorg-smproxy
+xorg-x11perf
+xorg-xauth
+xorg-xbacklight
+xorg-xcmsdb
+xorg-xcursorgen
+xorg-xdpyinfo
+xorg-xdriinfo
+xorg-xev
+xorg-xgamma
+xorg-xhost
+xorg-xinit
+xorg-xinput
+xorg-xkbcomp
+xorg-xkbevd
+xorg-xkbutils
+xorg-xkill
+xorg-xlsatoms
+xorg-xlsclients
+xorg-xmodmap
+xorg-xpr
+xorg-xprop
+xorg-xrandr
+xorg-xrdb
+xorg-xrefresh
+xorg-xset
+xorg-xsetroot
+xorg-xvinfo
+xorg-xwayland
+xorg-xwd
+xorg-xwininfo
+xorg-xwud
+xwallpaper
+youtube-dl
+zathura
+zathura-pdf-mupdf
+zip
+zsh
+zsh-syntax-highlighting
+    #+end_src
+** DONE Configure Userland
+   Clone emacs repo with:
+   #+begin_src sh
+git clone git@gitlab.com:Delta1024/emacs.git
+   #+end_src
+   Get dotfiles
+   #+begin_src sh
+git clone git@gitlab.com:Delta1024/dotfiles.git .cfg
+git --git-dit=/home/jake/.cfg --work-tree=$HOME checkout -f laptop
+   #+end_src
+   Get scripts
+   #+begin_src sh
+git clone git@gitlab.com:Delta1024/scripts.git .scripts
+   #+end_src
+   Install the status bar
+   #+begin_src sh
+sudo git clone https://github.com/Stargarth/Goblocks.git /usr/src/goblocks/ && chown -R jake /usr/src/goblocks/
+cd /usr/src/goblocks/
+sudo make install
+   #+end_src
+

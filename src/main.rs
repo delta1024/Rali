@@ -14,6 +14,13 @@
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>.
 mod toml_opps;
+use std::path::Path;
 fn main() {
     println!("Hello, Arch Linux!");
+    let test = Path::new("/sys/firmware/efi/efivars").exists();
+    if test {
+	println!("EFI mode detected");
+    }else {
+	println!("Bios mode detected");
+    }
 }
