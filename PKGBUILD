@@ -1,6 +1,6 @@
 pkgname=rali 
 _pkgname=archInstaller
-pkgver=0.1.r9.19e3bd2
+pkgver=0.1.r10.01a19ca
 pkgrel=1
 pkgdesc="Rust Arch Linux Installer"
 arch=(x86_64)
@@ -26,6 +26,7 @@ pkgver() {
 
 build() {
 	cd "${_pkgname}"
+	git checkout testing
 	RUSTUP_TOOLCHAIN=stable cargo build --release --locked --all-features --target-dir=target
 }
 
