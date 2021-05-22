@@ -25,7 +25,8 @@ fn main() {
         println!("Bios mode detected");
     }
     let net_set = Command::new("/usr/bin/timedatectl")
-	.args(&["set-ntp", "true"])
+	.arg("set-ntp")
+	.arg("true")
 	.status()
 	.expect("failed to execute process");
    assert!(net_set.success());
