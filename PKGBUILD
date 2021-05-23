@@ -1,6 +1,6 @@
 pkgname=rali 
 _pkgname=archInstaller
-pkgver=0.1.r18.
+pkgver=0.1.r19.
 pkgrel=1
 pkgdesc="Rust Arch Linux Installer"
 arch=(x86_64)
@@ -34,7 +34,7 @@ build() {
 
 package() {
 	cd "${_pkgname}"
-	install -Dm 755 target/release/"${pkgname}" -t "${pkgdir}/usr/bin"
+	install -Dm 755 target/debug/"${pkgname}" -t "${pkgdir}/usr/bin"
 	install -Dm 644 man/rali.1 -t "${pkgdir}/usr/share/man/man1/"
 	install -Dm 644 man/rali.conf.5 -t "${pkgdir}/usr/share/man/man5/"
 }

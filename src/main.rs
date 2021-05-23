@@ -46,11 +46,11 @@ fn main() {
     io::stdin()
         .read_line(&mut user_drive_choice)
         .expect("Failed to read line");
-    user_drive_choice.pop();
-    user_drive_choice.pop();
+    // user_drive_choice.pop();
+    // user_drive_choice.pop();
 
     println!(
-        "You selected: {}\n is this correct?\n(y/n)",
+        "You selected: {:?}\n is this correct?\n(y/n)",
         user_drive_choice
     );
 
