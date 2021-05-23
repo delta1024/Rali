@@ -1,6 +1,6 @@
 pkgname=rali 
 _pkgname=archInstaller
-pkgver=0.1.r10.01a19ca
+pkgver=0.1.r16.
 pkgrel=1
 pkgdesc="Rust Arch Linux Installer"
 arch=(x86_64)
@@ -17,16 +17,14 @@ md5sums=('SKIP')
 
 pkgver() {
 	cd "${_pkgname}"
-
 # Git, tags available
-	printf "0.1.r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+	printf "0.1.r%s.%s" "$(git rev-list --count HEAD --branches)" 
 
 }
 
 
 build() {
 	cd "${_pkgname}"
-	git checkout testing
 	RUSTUP_TOOLCHAIN=stable cargo build --release --locked --all-features --target-dir=target
 }
 

@@ -30,4 +30,8 @@ fn main() {
 	.status()
 	.expect("failed to execute process");
    assert!(net_set.success());
+    let _disk_part = Command::new("/usr/bin/fdisk")
+	.arg(r#"-f"#)
+	.output()
+	.expect("failed to execute process");
 }
