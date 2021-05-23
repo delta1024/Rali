@@ -13,25 +13,27 @@
 //
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>.
-use std::process::Command;
+use std::process::{Command, Stdio};
 mod toml_opps;
 use std::path::Path;
 fn main() {
     println!("Welcome to Arch Linux!");
-    let test = Path::new("/sys/firmware/efi/efivars").exists();
-    if test {
+    let is_uefi_mode = Path::new("/sys/firmware/efi/efivars").exists();
+    if is_uefi_mode {
         println!("EFI mode detected");
     } else {
         println!("Bios mode detected");
     }
-    let net_set = Command::new("/usr/bin/timedatectl")
+    let ntp_set_true = Command::new("/usr/bin/timedatectl")
 	.arg(r#"set-ntp"#)
 	.arg(r#"true"#)
 	.status()
 	.expect("failed to execute process");
-   assert!(net_set.success());
-    let _disk_part = Command::new("/usr/bin/fdisk")
-	.arg(r#"-f"#)
-	.output()
+   assert!(ntp_set_true.success());
+
+    let _disk_part_list = Command::new("/usr/bin/fdisk")
+	.arg(r#"-l"#)
+	.stdin(Stdio::null())
+	.spawn()
 	.expect("failed to execute process");
 }
