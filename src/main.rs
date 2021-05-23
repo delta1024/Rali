@@ -46,7 +46,7 @@ fn main() {
     io::stdin()
         .read_line(&mut user_drive_choice)
         .expect("Failed to read line");
-    // user_drive_choice.pop();
+    user_drive_choice.pop();
     // user_drive_choice.pop();
 
     println!(
