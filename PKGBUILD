@@ -1,6 +1,6 @@
 pkgname=rali 
 _pkgname=archInstaller
-pkgver=0.1.r16.
+pkgver=0.1.r18.
 pkgrel=1
 pkgdesc="Rust Arch Linux Installer"
 arch=(x86_64)
@@ -9,7 +9,7 @@ license=('GPL V3.0')
 makedepends=('git' 'cargo' 'rust') # 'bzr', 'git', 'mercurial' or 'subversion'
 provides=("${pkgname}")
 conflicts=("${pkgname}")
-source=("git+$url")
+source=("git+$url#branch=testing")
 md5sums=('SKIP')
 
 # Please refer to the 'USING VCS SOURCES' section of the PKGBUILD man page for
@@ -18,14 +18,15 @@ md5sums=('SKIP')
 pkgver() {
 	cd "${_pkgname}"
 # Git, tags available
-	printf "0.1.r%s.%s" "$(git rev-list --count HEAD --branches)" 
+	printf "0.1.r%s.%s" "$(git rev-list --count HEAD)" # "$(git rev-parse --short HEAD)"  
 
 }
 
 
 build() {
 	cd "${_pkgname}"
-	RUSTUP_TOOLCHAIN=stable cargo build --release --locked --all-features --target-dir=target
+	cargo build --target-dir=target
+	# RUSTUP_TOOLCHAIN=stable cargo build --release --locked --all-features --target-dir=target
 }
 
 
