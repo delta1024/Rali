@@ -77,7 +77,7 @@ fn main() {
     }
 
     let _part_drive_action = Command::new("/usr/bin/fdisk")
-	.arg(user_drive_choice)
+	.arg(user_drive_choice.as_str())
 	.output()
 	.expect("failed to excecute process");
 }
