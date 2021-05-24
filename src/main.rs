@@ -39,7 +39,7 @@ fn list_partitions(disk: String) {
                 "Partition #{}: type = {:?}, size = {} bytes, starting lba = {}",
                 i,
                 p.sys,
-                p.sectors * mbr.sector_size,
+                p.sectors,
                 p.starting_lba
             );
         }
@@ -50,7 +50,7 @@ fn list_partitions(disk: String) {
 fn main() {
     println!("Welcome to Arch Linux!");
     let is_uefi_mode = Path::new("/sys/firmware/efi/efivars").exists();
-    if is_uefi_mode {
+   if is_uefi_mode {
         println!("EFI mode detected");
     } else {
         println!("BIOS mode detected");
