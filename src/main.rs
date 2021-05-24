@@ -69,5 +69,6 @@ fn main() {
         .read_line(&mut user_drive)
         .expect("Failed to read line");
 
+    user_drive.pop();
     list_partitions(user_drive);
 }
