@@ -1,4 +1,4 @@
-// <rali - (Rust) Arch Linux Installer>
+// <RALI - Rali, the Arch Linux Installer>
 // Copyright (c) <2021>  <Jacob Stannix>
 //
 // this program is free software: you can redistribute it and/or modify
@@ -14,44 +14,45 @@
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>.
 mod toml_opps;
-use mbrman;
 use std::io::{self, Write};
 use std::path::Path;
 use std::process::Command;
-#[allow(dead_code)]
 fn fdisk_output() {
     let fdisk_out = Command::new("/usr/bin/fdisk")
-	.arg(r#"-l"#)
-	.output()
-	.expect("Failed to execute process");
+        .arg(r#"-l"#)
+        .output()
+        .expect("Failed to execute process");
     io::stdout().write_all(&fdisk_out.stdout).unwrap();
     io::stderr().write_all(&fdisk_out.stderr).unwrap();
 }
 
-fn list_partitions(disk: String) {
-    let mut f = std::fs::File::open(disk).expect("could not open disk");
-    let mbr = mbrman::MBR::read_from(&mut f, 512).expect("could not find MBR");
-    println!("Disk signature: {:?}", mbr.header.disk_signature);
+/// This module houses all of the fucitons related to the formating of Master Boot Record partitions
+pub mod mbr_func {
+use mbrman;
+    /// This fuction is designed to be used in conjunciton with an already formated disk.
+    /// # Considerations
+    /// * Using it on a unformated drive results in a panic.
+    pub fn list_partitions(disk: String) {
+        let mut f = std::fs::File::open(disk).expect("could not open disk");
+        let mbr = mbrman::MBR::read_from(&mut f, 512).expect("could not find MBR");
+        println!("Disk signature: {:?}", mbr.header.disk_signature);
 
-    for (i, p) in mbr.iter() {
-        if p.is_used() {
-	    let byte_as_usize: usize = p.sectors as usize * mbr.sector_size as usize;
-            println!(
-                "Partition #{}: type = {:?}, size = {} bytes, starting lba = {}",
-                i,
-                p.sys,
-		byte_as_usize,
-                p.starting_lba
-            );
+        for (i, p) in mbr.iter() {
+            if p.is_used() {
+                let byte_as_usize: usize = p.sectors as usize * mbr.sector_size as usize;
+                println!(
+                    "Partition #{}: type = {:?}, size = {} bytes, starting lba = {}",
+                    i, p.sys, byte_as_usize, p.starting_lba
+                );
+            }
         }
     }
 }
 
-
 fn main() {
     println!("Welcome to Arch Linux!");
     let is_uefi_mode = Path::new("/sys/firmware/efi/efivars").exists();
-   if is_uefi_mode {
+    if is_uefi_mode {
         println!("EFI mode detected");
     } else {
         println!("BIOS mode detected");
@@ -71,5 +72,5 @@ fn main() {
         .expect("Failed to read line");
 
     user_drive.pop();
-    list_partitions(user_drive);
+    mbr_func::list_partitions(user_drive);
 }
