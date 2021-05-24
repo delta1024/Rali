@@ -35,11 +35,12 @@ fn list_partitions(disk: String) {
 
     for (i, p) in mbr.iter() {
         if p.is_used() {
+	    let byte_as_usize: usize = p.sectors as usize * mbr.sector_size as usize;
             println!(
                 "Partition #{}: type = {:?}, size = {} bytes, starting lba = {}",
                 i,
                 p.sys,
-                p.sectors,
+		byte_as_usize,
                 p.starting_lba
             );
         }
