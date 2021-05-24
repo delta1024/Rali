@@ -20,7 +20,7 @@ use std::path::Path;
 use std::process::Command;
 #[allow(dead_code)]
 fn fdisk_output() {
-    let fdisk_out = Command::new("/user/bin/timedateclt")
+    let fdisk_out = Command::new("/usr/bin/fdisk")
 	.arg(r#"-l"#)
 	.output()
 	.expect("Failed to execute process");
