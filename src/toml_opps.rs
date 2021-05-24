@@ -15,6 +15,7 @@
 // along with this program.  if not, see <https://www.gnu.org/licenses/>.
 use serde::Deserialize;
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct Config {
     rali: Rali,
     pacman_conf: PacmanConf,
@@ -23,6 +24,7 @@ struct Config {
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct Rali {
     uefi: bool,
 }
