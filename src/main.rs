@@ -16,7 +16,7 @@
 mod toml_opps;
 use std::io::{self, Write};
 use std::path::Path;
-use std::process::Command;
+use std::process::{self, Command};
 fn fdisk_output() {
     let fdisk_out = Command::new("/usr/bin/fdisk")
         .arg(r#"-l"#)
@@ -28,9 +28,9 @@ fn fdisk_output() {
 
 /// This module houses all of the fucitons related to the formating of Master Boot Record partitions
 pub mod mbr_func {
-use mbrman;
+    use mbrman;
     /// This fuction is designed to be used in conjunciton with an already formated disk.
-    /// # Considerations
+    /// # Panics
     /// * Using it on a unformated drive results in a panic.
     pub fn list_partitions(disk: String) {
         let mut f = std::fs::File::open(disk).expect("could not open disk");
@@ -49,6 +49,32 @@ use mbrman;
     }
 }
 
+/// Ask the user for confirmation and returns the result
+fn ask_for_confirm(message: String) -> String {
+    println!("{}", message);
+    let mut response = String::new();
+    io::stdin()
+        .read_line(&mut response)
+        .expect("Failed to read line");
+    response.pop();
+    response
+}
+
+/// converts the given String to the appropriate sector value
+fn to_sectors(x: String) -> i64 {
+    let mut x = x;
+    let sufix_value = x.len();
+    let disk_size: String = x.drain(..sufix_value).collect();
+    println!("Disk Size: {}\n Sufix: {}", disk_size, x);
+    64
+    // match x {
+    // 	"G" => ,
+    // 	"M" => ,
+    // 	"k" => ,
+    // 	"b" => ,
+    // }
+}
+
 fn main() {
     println!("Welcome to Arch Linux!");
     let is_uefi_mode = Path::new("/sys/firmware/efi/efivars").exists();
@@ -56,6 +82,15 @@ fn main() {
         println!("EFI mode detected");
     } else {
         println!("BIOS mode detected");
+    }
+    let correct_mode_confirm = String::from("Is this correct? (y/n)");
+    let correct_mode_confirm = if correct_mode_confirm == "y" || correct_mode_confirm == "yes" {
+        true
+    } else {
+        false
+    };
+    if !correct_mode_confirm {
+        process::exit(1)
     }
     let ntp_set_true = Command::new("/usr/bin/timedatectl")
         .arg(r#"set-ntp"#)
@@ -65,12 +100,32 @@ fn main() {
     assert!(ntp_set_true.success());
 
     fdisk_output();
-    println!("Please enter desired drive for partitioning");
-    let mut user_drive = String::new();
-    io::stdin()
-        .read_line(&mut user_drive)
-        .expect("Failed to read line");
-
-    user_drive.pop();
-    mbr_func::list_partitions(user_drive);
+    let user_drive = String::from("Please enter desired drive for partitioning");
+    let _user_drive = ask_for_confirm(user_drive);
+    // * Ask the user if they wish to create a swap partition and if so what size
+    let user_swap = String::from("Do you wish to hav a swap partition? (y/n)");
+    let user_swap = ask_for_confirm(user_swap);
+    let user_swap = if user_swap == "y" || user_swap == "yes" {
+        true
+    } else {
+        false
+    };
+    let user_swap_size = if user_swap {
+        let swap_size = String::from(
+            "What size do you wish to make the swap partition
+(G)b (M)b (k)b (b)\n example: 512M",
+        );
+        let user_swap_size = ask_for_confirm(swap_size);
+        to_sectors(user_swap_size)
+    } else {
+        // set to arbitrary number so we can drop the value if it's not used
+        0
+    };
+    if !user_swap {
+        drop(user_swap_size);
+    }
 }
+
+// fn run() {
+
+// }

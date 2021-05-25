@@ -64,3 +64,5 @@ See rali.conf(5) for more details
 #+END_MAN
    *-L*
    rali will create a single boot partition and an LVM encrypted volume with virtual volums ontop.
+** Exit Codes
+   (1) wrong boot mode; user chose to exit program.
