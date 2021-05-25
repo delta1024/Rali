@@ -22,12 +22,13 @@ pub fn list_partitions(disk: String) {
 
 /// creates a basic partition table then formats the disk
 /// * if make_swap is set to true it creates a partition table with a swap of the specifed size.
-pub fn basic_arch_part(user_disk: String, _make_swap: bool, _swap_size: u32) {
+pub fn basic_arch_part(user_disk: String, make_swap: bool, swap_size: u32) {
     let mut f = std::fs::File::create(&user_disk).expect("could not open disk");
     let mut mbr  = mbrman::MBR::new_from(&mut f, 512, [0x01, 0x02, 0x03, 0x04])
 	.expect("could not make partition table");
     mbr.write_into(&mut f)
 	.expect("could not write mbr to disk");
+
     let mut f = std::fs::File::open(&user_disk).expect("could not open disk");
     let mut mbr = mbrman::MBR::read_from(&mut f, 512)
 	.expect("could not find MBR");
@@ -38,8 +39,9 @@ pub fn basic_arch_part(user_disk: String, _make_swap: bool, _swap_size: u32) {
     let starting_lba = mbr.find_optimal_place(sectors)
 	.expect("could not find a place to put the partition");
 
+    if !make_swap {
     mbr[free_partition_number] = mbrman::MBRPartitionEntry {
-	boot: false,
+	boot: true,
 	first_chs: mbrman::CHS::empty(),
 	sys: 0x83,
 	last_chs: mbrman::CHS::empty(),
@@ -49,6 +51,36 @@ pub fn basic_arch_part(user_disk: String, _make_swap: bool, _swap_size: u32) {
     let mut f = std::fs::File::create(&user_disk).expect("could not read disk");
     mbr.write_into(&mut f)
 	.expect("could not write MBR to disk");
+    }else {
+    mbr[free_partition_number] = mbrman::MBRPartitionEntry {
+	boot: false,
+	first_chs: mbrman::CHS::empty(),
+	sys: 0x82,
+	last_chs: mbrman::CHS::empty(),
+	starting_lba,
+	sectors: swap_size,
+    };
+
+    let free_partition_number = mbr.iter().find(|(i, p)| p.is_unused()).map(|(i, _)| i)
+	.expect("no more places avalible");
+    let sectors = mbr.get_maximum_partition_size()
+	.expect("no more space avalible");
+    let starting_lba = mbr.find_optimal_place(sectors)
+	.expect("could not find a place to put the partition");
+
+    mbr[free_partition_number] = mbrman::MBRPartitionEntry {
+	boot: true,
+	first_chs: mbrman::CHS::empty(),
+	sys: 0x83,
+	last_chs: mbrman::CHS::empty(),
+	starting_lba,
+	sectors,
+    };
+
+    let mut f = std::fs::File::create(&user_disk).expect("could not read disk");
+    mbr.write_into(&mut f)
+	.expect("could not write MBR to disk");
+    }
     
 }
 
