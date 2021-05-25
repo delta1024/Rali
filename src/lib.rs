@@ -24,12 +24,12 @@ fn fdisk_output() {
 }
 
 /// converts the given String to the appropriate sector value
-pub fn to_sectors(x: String, size: u64) -> u32 {
+pub fn to_sectors(x: String, size: u32) -> u32 {
     let mut x_clone = x.clone();
     let sufix_value = x.len() - 1;
     let disk_size: String = x_clone.drain(..sufix_value).collect();
     println!("Disk Size: {}\n Sufix: {}", disk_size, x);
-    let x = disk_size.parse::<usize>().unwrap();
+    let x = disk_size.parse::<u32>().unwrap();
     let n = match x_clone.as_str() {
         "T" => (((x * 1024) * 1024) * 1024) * 1024,
         "G" => ((x * 1024) * 1024) * 1024,
@@ -38,8 +38,8 @@ pub fn to_sectors(x: String, size: u64) -> u32 {
         "b" => x,
         _ => 0,
     };
-    println!("{}", n / size as usize);
-    n as u32 / size as u32
+    println!("{}", n / size);
+    n  / size 
 }
 
 pub fn run() {
