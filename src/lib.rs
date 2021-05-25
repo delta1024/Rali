@@ -78,11 +78,11 @@ pub fn run() {
         mbr::basic_arch_part(user_drive, false, 0);
 	drive.push('1');
 	std::process::Command::new("/usr/bin/mkfs.ext4")
-	    .arg(drive.clone())
+	    .arg(&drive)
 	    .status()
 	    .expect("Failed to execute process");
 	std::process::Command::new("/usr/bin/mount")
-	    .args(vec![drive, "/mnt".to_string()])
+	    .args(&[&drive, "/mnt"])
 	    .spawn()
 	    .expect("Failed to execute process");
     } else {
@@ -92,23 +92,23 @@ pub fn run() {
 
 	swap_drive.push('1');
 	std::process::Command::new("/usr/bin/mkswap")
-	    .arg(swap_drive.clone())
+	    .arg(&swap_drive)
 	    .status()
 	    .expect("Failed to execute process");
 
 	std::process::Command::new("/usr/bin/swapon")
-	    .arg(swap_drive)
+	    .arg(&swap_drive)
 	    .status()
 	    .expect("Failed to execute process");
 
 	drive.push('2');
 	std::process::Command::new("/usr/bin/mkfs.ext4")
-	    .arg(drive.clone())
+	    .arg(&drive)
 	    .status()
 	    .expect("Failed to execute process");
 
 	std::process::Command::new("/usr/bin/mount")
-	    .args(vec![drive, "/mnt".to_string()])
+	    .args(&[&drive, "/mnt"])
 	    .spawn()
 	    .expect("failed to execute process");
     }
