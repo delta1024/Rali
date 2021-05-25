@@ -50,7 +50,7 @@ pub mod mbr_func {
 }
 
 /// Ask the user for confirmation and returns the result
-fn ask_for_confirm(message: String) -> String {
+fn ask_for_input(message: String) -> String {
     println!("{}", message);
     let mut response = String::new();
     io::stdin()
@@ -84,7 +84,7 @@ fn main() {
         println!("BIOS mode detected");
     }
     let correct_mode_confirm = String::from("Is this correct? (y/n)");
-    let correct_mode_confirm = ask_for_confirm(correct_mode_confirm);
+    let correct_mode_confirm = ask_for_input(correct_mode_confirm);
     let correct_mode_confirm = if correct_mode_confirm == "y" || correct_mode_confirm == "yes" {
         true
     } else {
@@ -103,10 +103,10 @@ fn main() {
 
     fdisk_output();
     let user_drive = String::from("Please enter desired drive for partitioning");
-    let _user_drive = ask_for_confirm(user_drive);
+    let _user_drive = ask_for_input(user_drive);
     // * Ask the user if they wish to create a swap partition and if so what size
     let user_swap = String::from("Do you wish to hav a swap partition? (y/n)");
-    let user_swap = ask_for_confirm(user_swap);
+    let user_swap = ask_for_input(user_swap);
     let user_swap = if user_swap == "y" || user_swap == "yes" {
         true
     } else {
@@ -117,7 +117,7 @@ fn main() {
             "What size do you wish to make the swap partition
 (G)b (M)b (k)b (b)\n example: 512M",
         );
-        let user_swap_size = ask_for_confirm(swap_size);
+        let user_swap_size = ask_for_input(swap_size);
         to_sectors(user_swap_size)
     } else {
         // set to arbitrary number so we can drop the value if it's not used
