@@ -31,9 +31,9 @@ pub fn to_sectors(x: String, size: u64) -> u32 {
     println!("Disk Size: {}\n Sufix: {}", disk_size, x);
     let x = disk_size.parse::<usize>().unwrap();
     let n = match x_clone.as_str() {
-        "T" => x * 1024 * 1024 * 1024,
-        "G" => x * 1024 * 1024 * 1024,
-        "M" => x * 1024 * 1024,
+        "T" => (((x * 1024) * 1024) * 1024) * 1024,
+        "G" => ((x * 1024) * 1024) * 1024,
+        "M" => (x * 1024) * 1024,
         "k" => x * 1024,
         "b" => x,
         _ => 0,
