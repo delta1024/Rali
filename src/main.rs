@@ -84,13 +84,15 @@ fn main() {
         println!("BIOS mode detected");
     }
     let correct_mode_confirm = String::from("Is this correct? (y/n)");
+    let correct_mode_confirm = ask_for_confirm(correct_mode_confirm);
     let correct_mode_confirm = if correct_mode_confirm == "y" || correct_mode_confirm == "yes" {
         true
     } else {
         false
     };
     if !correct_mode_confirm {
-        process::exit(1)
+	println!("exiting");
+        process::exit(4)
     }
     let ntp_set_true = Command::new("/usr/bin/timedatectl")
         .arg(r#"set-ntp"#)
