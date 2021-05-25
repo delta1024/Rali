@@ -46,6 +46,7 @@ pub fn basic_arch_part(user_disk: String, _make_swap: bool, _swap_size: u32) {
 	starting_lba,
 	sectors,
     };
+    let mut f = std::fs::File::create(&user_disk).expect("could not read disk");
     mbr.write_into(&mut f)
 	.expect("could not write MBR to disk");
     
