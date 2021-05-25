@@ -63,7 +63,7 @@ fn ask_for_confirm(message: String) -> String {
 /// converts the given String to the appropriate sector value
 fn to_sectors(x: String) -> i64 {
     let mut x = x;
-    let sufix_value = x.len();
+    let sufix_value = x.len() - 1;
     let disk_size: String = x.drain(..sufix_value).collect();
     println!("Disk Size: {}\n Sufix: {}", disk_size, x);
     64

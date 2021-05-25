@@ -1,6 +1,6 @@
 pkgname=rali 
 _pkgname=archInstaller
-pkgver=0.1.r30.
+pkgver=0.1.r31.
 pkgrel=1
 pkgdesc="Rust Arch Linux Installer"
 arch=(x86_64)
