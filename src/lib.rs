@@ -1,93 +1,7 @@
+//! RALI aimes to make the installation and redeployment of an arch based system as painless as possible.
 use std::io::{self, Write};
 use std::process::Command;
-
-/// This module houses all of the fucitons related to the formating of Master Boot Record partitions
-pub mod mbr_func {
-    use mbrman::{self, MBR};
-    /// This fuction is designed to be used in conjunciton with an already formated disk.
-    /// # Panics
-    /// * Using it on a unformated drive results in a panic.
-    pub fn list_partitions(disk: String) {
-        let mut f = std::fs::File::open(disk).expect("could not open disk");
-        let mbr = mbrman::MBR::read_from(&mut f, 512).expect("could not find MBR");
-        println!("Disk signature: {:?}", mbr.header.disk_signature);
-
-        for (i, p) in mbr.iter() {
-            if p.is_used() {
-                let byte_as_usize: usize = p.sectors as usize * mbr.sector_size as usize;
-                println!(
-                    "Partition #{}: type = {:?}, size = {} bytes, starting lba = {}",
-                    i, p.sys, byte_as_usize, p.starting_lba
-                );
-            }
-        }
-    }
-
-    /// creates a basic partition table then formats the disk
-    /// * if make_swap is set to true it creates a partition table with a swap of the specifed size.
-    pub fn basic_arch_part(user_disk: String, make_swap: bool, swap_size: u32) {
-        let mut f = std::fs::File::open(user_disk).expect("could not open disk");
-        let mbr = MBR::new_from(&mut f, 512, [0x01, 0x02, 0x03, 0x04])
-            .expect("could not make a partition table");
-        let mbr = if make_swap {
-            // 82 is the number for linux swap
-            mbr_part_make(false, 0x82, swap_size, false, mbr).unwrap()
-        } else {
-            mbr_part_make(true, 0x83, swap_size, true, mbr).unwrap()
-        };
-
-        let mut mbr = if make_swap {
-            mbr_part_make(true, 0x83, swap_size, true, mbr).unwrap()
-        } else {
-            mbr
-        };
-        mbr.write_into(&mut f).unwrap();
-    }
-
-    /// handles the heavy lifty of logic for allocating size for 
-    pub fn mbr_part_make(
-        boot: bool,
-        fs_type: u8,
-        part_size: u32,
-        use_rest: bool,
-        mbr: MBR,
-    ) -> std::io::Result<MBR> {
-	let mut mbr = mbr;
-        let free_partition_number = mbr
-            .iter()
-            .find(|(i, p)| p.is_unused())
-            .map(|(i, _)| i)
-            .expect("no more places avalible");
-        let sectors = match use_rest {
-            false => {
-                if part_size
-                    <= mbr
-                        .get_maximum_partition_size()
-                        .expect("no more space avalible")
-                {
-                    part_size
-                } else {
-                    0
-                }
-            }
-            true => mbr
-                .get_maximum_partition_size()
-                .expect("no more space avalible"),
-        };
-        let starting_lba = mbr.find_optimal_place(sectors).expect("cound not find place to put the partition");
-
-	mbr[free_partition_number] = mbrman::MBRPartitionEntry {
-	    boot,
-	    first_chs: mbrman::CHS::empty(),
-	    sys: fs_type,
-	    last_chs: mbrman::CHS::empty(),
-	    starting_lba,
-	    sectors,
-	    
-	};
-        Ok(mbr)
-    }
-}
+pub mod mbr;
 
 /// Ask the user for confirmation and returns the result
 pub fn ask_for_input(message: String) -> String {
@@ -160,8 +74,8 @@ pub fn run() {
     };
     if !user_swap {
         drop(user_swap_size);
-        mbr_func::basic_arch_part(user_drive, false, 0);
+        mbr::basic_arch_part(user_drive, false, 0);
     } else {
-        mbr_func::basic_arch_part(user_drive, true, user_swap_size);
+        mbr::basic_arch_part(user_drive, true, user_swap_size);
     }
 }
