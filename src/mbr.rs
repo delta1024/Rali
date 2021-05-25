@@ -22,8 +22,8 @@ pub fn list_partitions(disk: String) {
 
 /// creates a basic partition table then formats the disk
 /// * if make_swap is set to true it creates a partition table with a swap of the specifed size.
-pub fn basic_arch_part(_user_disk: String, _make_swap: bool, _swap_size: u32) {
-    let mut f = std::fs::File::open("/dev/sda").expect("could not open disk");
+pub fn basic_arch_part(user_disk: String, _make_swap: bool, _swap_size: u32) {
+    let mut f = std::fs::File::create(&user_disk).expect("could not open disk");
     let mut mbr  = mbrman::MBR::new_from(&mut f, 512, [0x01, 0x02, 0x03, 0x04])
 	.expect("could not make partition table");
     mbr.write_into(&mut f)
