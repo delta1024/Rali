@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 [package]
-name = "arch_installer"
+name = "rali"
 version = "0.1.0"
 authors = ["Jacob Stannix <jakestannix at gmail dot com>"]
 edition = "2018"
@@ -30,3 +30,4 @@ serde = { version = "1.0", features = ["derive"] }
 getopts = "0.2.21"
 mbrman = "0.4.0"
 # gptman = "0.8.0"
+# block-utils = "0.10.2"

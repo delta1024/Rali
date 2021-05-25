@@ -14,9 +14,9 @@
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>.
 mod toml_opps;
-use std::process;
+use rali::{ask_for_input, run};
 use std::path::Path;
-use arch_installer::{run, ask_for_input};
+use std::process;
 fn main() {
     println!("Welcome to Arch Linux!");
     let is_uefi_mode = Path::new("/sys/firmware/efi/efivars").exists();
@@ -33,9 +33,9 @@ fn main() {
         false
     };
     if !correct_mode_confirm {
-	println!("exiting");
-        process::exit(4)
+        println!("rebooting");
+	std::thread::sleep(std::time::Duration::from_secs(3));
+        process::Command::new("/usr/bin/reboot").spawn().expect("Failed to start process");
     }
     run();
 }
-

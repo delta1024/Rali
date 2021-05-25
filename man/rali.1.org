@@ -14,7 +14,7 @@
 # you should have received a copy of the gnu general public license
 # along with this program.  if not, see <https://www.gnu.org/licenses/>.
 
-#+TITLE: RALI" "1" "2021-05-20" "GNU/Linux
+#+TITLE: RALI" "1" "2021-05-25" "GNU/Linux
 #+EXPORT_FILE_NAME: rali.1.man
 #+MAN_CLASS_OPTIONS: :section-id "RALI.0.1.0" 
 * NAME
