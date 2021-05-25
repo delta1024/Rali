@@ -47,6 +47,8 @@ pub fn run() {
         .status()
         .expect("failed to execute process");
     assert!(ntp_set_true.success());
+    // give timedatectl out output time to update so we don't clutter the display
+	std::thread::sleep(std::time::Duration::from_secs(3));
 
     fdisk_output();
     let user_drive = String::from("Please enter desired drive for partitioning");
@@ -72,31 +74,8 @@ pub fn run() {
     };
     if !user_swap {
         drop(user_swap_size);
-	let mut swap_drive = user_drive.clone();
 	let mut drive = user_drive.clone();
         mbr::basic_arch_part(user_drive, false, 0);
-	swap_drive.push('1');
-	std::process::Command::new("/usr/bin/mkswap")
-	    .arg(swap_drive.clone())
-	    .status()
-	    .expect("Failed to execute process");
-	std::process::Command::new("/usr/bin/swapon")
-	    .arg(swap_drive)
-	    .status()
-	    .expect("Failed to execute process");
-	drive.push('2');
-	std::process::Command::new("/usr/bin/mkfs.ext4")
-	    .arg(drive.clone())
-	    .status()
-	    .expect("Failed to execute process");
-	std::process::Command::new("/usr/bin/mount")
-	    .args(vec![drive, "/mnt".to_string()])
-	    .spawn()
-	    .expect("failed to execute process");
-    } else {
-	let mut drive = user_drive.clone();
-        mbr::basic_arch_part(user_drive, true, user_swap_size);
-
 	drive.push('1');
 	std::process::Command::new("/usr/bin/mkfs.ext4")
 	    .arg(drive.clone())
@@ -106,5 +85,31 @@ pub fn run() {
 	    .args(vec![drive, "/mnt".to_string()])
 	    .spawn()
 	    .expect("Failed to execute process");
+    } else {
+	let mut swap_drive = user_drive.clone();
+	let mut drive = user_drive.clone();
+        mbr::basic_arch_part(user_drive, true, user_swap_size);
+
+	swap_drive.push('1');
+	std::process::Command::new("/usr/bin/mkswap")
+	    .arg(swap_drive.clone())
+	    .status()
+	    .expect("Failed to execute process");
+
+	std::process::Command::new("/usr/bin/swapon")
+	    .arg(swap_drive)
+	    .status()
+	    .expect("Failed to execute process");
+
+	drive.push('2');
+	std::process::Command::new("/usr/bin/mkfs.ext4")
+	    .arg(drive.clone())
+	    .status()
+	    .expect("Failed to execute process");
+
+	std::process::Command::new("/usr/bin/mount")
+	    .args(vec![drive, "/mnt".to_string()])
+	    .spawn()
+	    .expect("failed to execute process");
     }
 }
