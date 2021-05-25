@@ -28,7 +28,6 @@ pub fn to_sectors(x: String, size: u64) -> usize {
     let mut x_clone = x.clone();
     let sufix_value = x.len() - 1;
     let disk_size: String = x_clone.drain(..sufix_value).collect();
-    println!("Disk Size: {}\n Sufix: {}", disk_size, x);
     let x = disk_size.parse::<usize>().unwrap();
     let n = match x_clone.as_str() {
         "T" => (((x * 1024) * 1024) * 1024) * 1024,
@@ -38,7 +37,6 @@ pub fn to_sectors(x: String, size: u64) -> usize {
         "b" => x,
         _ => 0,
     };
-    println!("{}", n / size as usize);
     n / size as usize
 }
 
@@ -64,7 +62,7 @@ pub fn run() {
     let user_swap_size = if user_swap {
         let swap_size_prompt = String::from(
             "What size do you wish to make the swap partition
-(T)b (G)b (M)b (k)b (b)\n example: 512M",
+(T)b (G)b (M)b (k)b (b)\nexample: 512M",
         );
         let user_swap_size = ask_for_input(swap_size_prompt);
         to_sectors(user_swap_size, 512)
@@ -74,8 +72,39 @@ pub fn run() {
     };
     if !user_swap {
         drop(user_swap_size);
+	let mut swap_drive = user_drive.clone();
+	let mut drive = user_drive.clone();
         mbr::basic_arch_part(user_drive, false, 0);
+	swap_drive.push('1');
+	std::process::Command::new("/usr/bin/mkswap")
+	    .arg(swap_drive.clone())
+	    .status()
+	    .expect("Failed to execute process");
+	std::process::Command::new("/usr/bin/swapon")
+	    .arg(swap_drive)
+	    .status()
+	    .expect("Failed to execute process");
+	drive.push('2');
+	std::process::Command::new("/usr/bin/mkfs.ext4")
+	    .arg(drive.clone())
+	    .status()
+	    .expect("Failed to execute process");
+	std::process::Command::new("/usr/bin/mount")
+	    .args(vec![drive, "/mnt".to_string()])
+	    .spawn()
+	    .expect("failed to execute process");
     } else {
+	let mut drive = user_drive.clone();
         mbr::basic_arch_part(user_drive, true, user_swap_size);
+
+	drive.push('1');
+	std::process::Command::new("/usr/bin/mkfs.ext4")
+	    .arg(drive.clone())
+	    .status()
+	    .expect("Failed to execute process");
+	std::process::Command::new("/usr/bin/mount")
+	    .args(vec![drive, "/mnt".to_string()])
+	    .spawn()
+	    .expect("Failed to execute process");
     }
 }
