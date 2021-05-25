@@ -25,8 +25,10 @@ pub fn basic_arch_part(user_disk: String, _make_swap: bool, _swap_size: u32) {
     let disk = user_disk.clone();
     let mut f = std::fs::File::open(user_disk)
 	.expect("could not open disk");
-    let _mbr = mbrman::MBR::new_from(&mut f, 512, [0x01, 0x02, 0x03, 0x04])
+    let mut mbr = mbrman::MBR::new_from(&mut f, 512, [0x01, 0x02, 0x03, 0x04])
 	.expect("could not make partition table");
+    mbr.write_into(&mut f)
+	.expect("could not write MBR to disk");
     let mut mbr = mbrman::MBR::read_from(&mut f, 512)
 	.expect("could not find MBR");
     let free_partition_number = mbr.iter().find(|(i, p)| p.is_unused()).map(|(i, _)| i)
