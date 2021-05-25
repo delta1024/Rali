@@ -27,7 +27,25 @@ pub fn basic_arch_part(user_disk: String, _make_swap: bool, _swap_size: u32) {
 	.expect("could not open disk");
     let _mbr = mbrman::MBR::new_from(&mut f, 512, [0x01, 0x02, 0x03, 0x04])
 	.expect("could not make partition table");
-    list_partitions(disk);
+    let mut mbr = mbrman::MBR::read_from(&mut f, 512)
+	.expect("could not find MBR");
+    let free_partition_number = mbr.iter().find(|(i, p)| p.is_unused()).map(|(i, _)| i)
+	.expect("no more places avalible");
+    let sectors = mbr.get_maximum_partition_size()
+	.expect("no more space avalible");
+    let starting_lba = mbr.find_optimal_place(sectors)
+	.expect("could not find a place to put the partition");
+
+    mbr[free_partition_number] = mbrman::MBRPartitionEntry {
+	boot: false,
+	first_chs: mbrman::CHS::empty(),
+	sys: 0x83,
+	last_chs: mbrman::CHS::empty(),
+	starting_lba,
+	sectors,
+    };
+    mbr.write_into(&mut f)
+	.expect("could not write MBR to disk");
     
 }
 
