@@ -28,24 +28,27 @@ pub fn basic_arch_part(user_disk: String, _make_swap: bool, _swap_size: u32) {
 	.expect("could not make partition table");
     mbr.write_into(&mut f)
 	.expect("could not write mbr to disk");
-    // let free_partition_number = mbr.iter().find(|(i, p)| p.is_unused()).map(|(i, _)| i)
-    // 	.expect("no more places avalible");
-    // let sectors = mbr.get_maximum_partition_size()
-    // 	.expect("no more space avalible");
-    // let starting_lba = mbr.find_optimal_place(sectors)
-    // 	.expect("could not find a place to put the partition");
+    let mut f = std::fs::File::open(&user_disk).expect("could not open disk");
+    let mut mbr = mbr::MBR:read_from(&mut f, 512)
+	.expext("could not find MBR")
+    let free_partition_number = mbr.iter().find(|(i, p)| p.is_unused()).map(|(i, _)| i)
+	.expect("no more places avalible");
+    let sectors = mbr.get_maximum_partition_size()
+	.expect("no more space avalible");
+    let starting_lba = mbr.find_optimal_place(sectors)
+	.expect("could not find a place to put the partition");
 
-    // mbr[free_partition_number] = mbrman::MBRPartitionEntry {
-    // 	boot: false,
-    // 	first_chs: mbrman::CHS::empty(),
-    // 	sys: 0x83,
-    // 	last_chs: mbrman::CHS::empty(),
-    // 	starting_lba,
-    // 	sectors,
-    // };
-    // let
-    // mbr.write_into(&mut f)
-    // 	.expect("could not write MBR to disk");
+    mbr[free_partition_number] = mbrman::MBRPartitionEntry {
+	boot: false,
+	first_chs: mbrman::CHS::empty(),
+	sys: 0x83,
+	last_chs: mbrman::CHS::empty(),
+	starting_lba,
+	sectors,
+    };
+    let
+    mbr.write_into(&mut f)
+	.expect("could not write MBR to disk");
     
 }
 
