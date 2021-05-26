@@ -94,11 +94,11 @@ pub fn run() {
 	let mut drive = user_drive.clone();
         mbr::basic_arch_part(user_drive, true, user_swap_size);
 
-	let mut mknod =std::process::Command::new("/usr/bin/mknod");
-	drive.push('2');
-	swap_drive.push('1');
-	mknod.args(&[&drive, "b", "22", "1"]).spawn().expect("failed to spawn process");
-	mknod.args(&[&swap_drive, "b", "22", "1"]).spawn().expect("failed to spawn process");
+	// let mut mknod =std::process::Command::new("/usr/bin/mknod");
+	// drive.push('2');
+	// swap_drive.push('1');
+	// mknod.args(&[&drive, "b", "8", "1"]).spawn().expect("failed to spawn process");
+	// mknod.args(&[&swap_drive, "b", "8", "2"]).spawn().expect("failed to spawn process");
 	// std::process::Command::new("/usr/bin/mkswap")
 	//     .arg(&swap_drive)
 	//     .status()
