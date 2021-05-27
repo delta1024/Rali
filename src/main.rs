@@ -34,8 +34,10 @@ fn main() {
     };
     if !correct_mode_confirm {
         println!("rebooting");
-	std::thread::sleep(std::time::Duration::from_secs(3));
-        process::Command::new("/usr/bin/reboot").spawn().expect("Failed to start process");
+        std::thread::sleep(std::time::Duration::from_secs(3));
+        process::Command::new("/usr/bin/reboot")
+            .spawn()
+            .expect("Failed to start process");
     }
     run();
 }

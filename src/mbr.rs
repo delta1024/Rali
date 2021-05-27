@@ -56,7 +56,7 @@ pub fn basic_arch_part(user_disk: String, make_swap: bool, swap_size: usize) {
         // create drive file so we can write to it
         let mut f = std::fs::File::create(&user_disk).expect("could not read disk");
         mbr.write_into(&mut f).expect("could not write MBR to disk");
-    let mut f = std::fs::File::open(&user_disk).expect("could not open disk");
+        let mut f = std::fs::File::open(&user_disk).expect("could not open disk");
         linux::reread_partition_table(&mut f).unwrap();
     } else {
         mbr[free_partition_number] = mbrman::MBRPartitionEntry {
@@ -91,7 +91,7 @@ pub fn basic_arch_part(user_disk: String, make_swap: bool, swap_size: usize) {
 
         let mut f = std::fs::File::create(&user_disk).expect("could not read disk");
         mbr.write_into(&mut f).expect("could not write MBR to disk");
-    let mut f = std::fs::File::open(&user_disk).expect("could not open disk");
+        let mut f = std::fs::File::open(&user_disk).expect("could not open disk");
         linux::reread_partition_table(&mut f).unwrap();
     }
 }
