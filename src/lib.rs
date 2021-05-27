@@ -1,12 +1,16 @@
 //! RALI aimes to make the installation and redeployment of an arch based system as painless as possible.
+//! # Bugs
+//! * Currently the application has no way of knowing what partitions should be mapted to what phisical disk
+//!     * need to make it take the argument of /dev/sda and add approriate partition numbers
+
+use rpassword::prompt_password_stdout;
 use std::io::{self, Write};
 use std::process::Command;
-pub mod mbr;
 pub mod user_ops;
-pub use user_ops::UserSellection;
+pub use crate::user_ops::{UserSellection, users::Users};
 
 /// Ask the user for confirmation and returns the result
-pub fn ask_for_input(message: String) -> String {
+pub fn ask_for_input(message: &str) -> String {
     println!("{}", message);
     let mut response = String::new();
     io::stdin()
@@ -32,11 +36,11 @@ pub fn to_mib(x: String) -> u32 {
     let disk_size: String = x_clone.drain(..sufix_value).collect();
     let x = disk_size.parse::<u32>().unwrap();
     let n = match x_clone.as_str() {
-        "T" => (x * 1024) * 1024,
-        "G" => x * 1024,
+        "T" => (x * 1000) * 1000,
+        "G" => x * 1000,
         "M" => x,
-        "k" => x / 1024,
-        "b" => (x / 1024) / 1024,
+        "k" => x / 1000,
+        "b" => (x / 1000) / 1000,
         _ => 0,
     };
     n
@@ -55,94 +59,81 @@ pub fn answer_to_bool(answer: String) -> bool {
 pub fn user_survay() -> UserSellection {
     let mut answers = UserSellection::default();
 
-    // need to add queries for swap options too
     answers.drives.drive_questions();
-    answers.drives.swap_questions();
-    answers.drives.root_questions();
-    answers.drives.home_questions();
+    answers.drives.drive_gpt();
+    answers.drives.swap_part_question();
+    answers.drives.swap_size_set();
+    answers.drives.root_sys_questions_size();
+    answers.drives.root_sys_question_format();
+    answers.drives.home_questions_sep_part();
+    answers.drives.home_part_custom_set();
+    answers.drives.home_no_custom_set();
+    answers.users.name_question();
+    answers.users.wheel_question();
+    answers.users.sudoer_question();
+    answers.users.pass_question();
 
-    todo!();
+    let root_pass = loop {
+        let first_go = prompt_password_stdout("Please enter desired root password:").unwrap();
+        let second_go = prompt_password_stdout("Please reenter desired root password:").unwrap();
+
+        if first_go == second_go {
+            break second_go;
+        } else {
+            println!("passwords do not match, please try again");
+        }
+    };
+    answers.root = Users {
+        user_pass: root_pass,
+        ..Users::default()
+    };
+    answers
 }
-#[allow(unused_variables)]
-#[allow(unused_mut)]
+
 pub fn run() {
-    let ntp_set_true = Command::new("/usr/bin/timedatectl")
-        .arg(r#"set-ntp"#)
-        .arg(r#"true"#)
-        .status()
-        .expect("failed to execute process");
-    assert!(ntp_set_true.success());
-    // give timedatectl out output time to update so we don't clutter the display
-    std::thread::sleep(std::time::Duration::from_secs(3));
-    let choices = user_survay();
+    let mut choices = user_survay();
+    loop {
 
-    //     fdisk_output();
-    //     let user_drive = String::from("Please enter desired drive for partitioning");
-    //     let user_drive = ask_for_input(user_drive);
+    let read_out = format!(
+        "Main Drive Id: {}
+GPT with bois: {}
+Swap Partition: {}
+Swap Size: {}Mib
+Swap Id: {}
+Root File System: {}
+Root fs Size: {}Mib
+Root fs Format: {:?}
+Seperate Home Partition: {}
+Seperate User Home Part: {}
+Home Partition Id: {}
+User Name: {}
+Wheel Group: {}
+Sudoers File: {}",
+        choices.drives.drive_id,
+        choices.drives.gpt_with_bios,
+        choices.drives.format_swap,
+        choices.drives.swap_size,
+        choices.drives.swap_id,
+        choices.drives.root_sys_id,
+        choices.drives.root_sys_size,
+        choices.drives.root_sys_format,
+        choices.drives.home_part,
+        choices.drives.home_part_exist,
+        choices.drives.home_id,
+        choices.users.user_name,
+        choices.users.is_wheel,
+        choices.users.is_sudoer
+    );
 
-    //     let user_swap = String::from("Do you wish to hav a swap partition? (y/n)");
-    //     let user_swap = ask_for_input(user_swap);
-    //     let user_swap = if user_swap == "y" || user_swap == "yes" {
-    //         true
-    //     } else {
-    //         false
-    //     };
-    //     let user_swap_size = if user_swap {
-    //         let swap_size_prompt = String::from(
-    //             "What size do you wish to make the swap partition
-    // (T)b (G)b (M)b (k)b (b)\nexample: 512M",
-    //         );
-    //         let user_swap_size = ask_for_input(swap_size_prompt);
-    //         to_sectors(user_swap_size, 512)
-    //     } else {
-    //         // set to arbitrary number so we can drop the value if it's not used
-    //         0
-    //     };
-    //     if !user_swap {
-    //         drop(user_swap_size);
-    //         let mut drive = user_drive.clone();
-    //         mbr::basic_arch_part(user_drive, false, 0);
-    //         drive.push('1');
-    //         std::process::Command::new("/usr/bin/mknod")
-    //             .args(&[&drive, "b", "22", "1"])
-    //             .spawn()
-    //             .expect("failed to spawn process");
-    // std::process::Command::new("/usr/bin/mkfs.ext4")
-    //     .arg(&drive)
-    //     .status()
-    //     .expect("Failed to execute process");
-    // std::process::Command::new("/usr/bin/mount")
-    //     .args(&[&drive, "/mnt"])
-    //     .spawn()
-    //     .expect("Failed to execute process");
-    // } else {
-    //     let mut swap_drive = user_drive.clone();
-    //     let mut drive = user_drive.clone();
-    //     mbr::basic_arch_part(user_drive, true, user_swap_size);
+    println!("{}", read_out);
 
-    // let mut mknod =std::process::Command::new("/usr/bin/mknod");
-    // drive.push('2');
-    // swap_drive.push('1');
-    // mknod.args(&[&drive, "b", "8", "1"]).spawn().expect("failed to spawn process");
-    // mknod.args(&[&swap_drive, "b", "8", "2"]).spawn().expect("failed to spawn process");
-    // std::process::Command::new("/usr/bin/mkswap")
-    //     .arg(&swap_drive)
-    //     .status()
-    //     .expect("Failed to execute process");
+    let need_redo = answer_to_bool(ask_for_input("Is this correct? (y/n)"));
+    if !need_redo {
+        choices.edit();
+    }else {
+	break
 
-    // std::process::Command::new("/usr/bin/swapon")
-    //     .arg(&swap_drive)
-    //     .status()
-    //     .expect("Failed to execute process");
+    }
 
-    // std::process::Command::new("/usr/bin/mkfs.ext4")
-    //     .arg(&drive)
-    //     .status()
-    //     .expect("Failed to execute process");
-
-    // std::process::Command::new("/usr/bin/mount")
-    //     .args(&[&drive, "/mnt"])
-    //     .spawn()
-    //     .expect("failed to execute process");
-    // }
+    }
 }

@@ -13,7 +13,6 @@
 //
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>.
-mod toml_opps;
 use rali::{ask_for_input, run};
 use std::path::Path;
 use std::process;
@@ -25,8 +24,7 @@ fn main() {
     } else {
         println!("BIOS mode detected");
     }
-    let correct_mode_confirm = String::from("Is this correct? (y/n)");
-    let correct_mode_confirm = ask_for_input(correct_mode_confirm);
+    let correct_mode_confirm = ask_for_input("Is this correct? (y/n)");
     let correct_mode_confirm = if correct_mode_confirm == "y" || correct_mode_confirm == "yes" {
         true
     } else {
