@@ -1,4 +1,4 @@
-pkgname=rali 
+pkgname=rali-testing
 _pkgname=archInstaller
 pkgver=0.1.r56.
 pkgrel=1
@@ -6,10 +6,10 @@ pkgdesc="Rust Arch Linux Installer"
 arch=(x86_64)
 url="ssh://gituser@synas.local:99/volume1/git/archInstaller.git"
 license=('GPL V3.0')
-depends=('parted')
+depends=('parted' 'fdisk')
 makedepends=('git' 'cargo' 'rust') # 'bzr', 'git', 'mercurial' or 'subversion'
 provides=("${pkgname}")
-conflicts=("${pkgname}")
+conflicts=("${pkgname}" 'rali')
 source=("git+$url#branch=testing")
 md5sums=('SKIP')
 
