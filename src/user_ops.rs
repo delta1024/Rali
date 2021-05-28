@@ -39,6 +39,26 @@ pub struct UserSellection {
     /// holds root user config
     pub root: Users,
 }
+impl UserSellection {
+    pub fn set_root_pass(&mut self) -> &mut Self {
+        let root_pass = loop {
+            let first_go = prompt_password_stdout("Please enter desired root password:").unwrap();
+            let second_go =
+                prompt_password_stdout("Please reenter desired root password:").unwrap();
+
+            if first_go == second_go {
+                break second_go;
+            } else {
+                println!("passwords do not match, please try again");
+            }
+        };
+        self.root = Users {
+            user_pass: root_pass,
+            ..Users::default()
+        };
+        self
+    }
+}
 fn menu_sections() -> [&'static str; 8] {
     const PROMPT: &str = "Please select an option";
     const SECTIONS: &str = "1)
@@ -92,55 +112,51 @@ Passwords
 }
 
 impl UserSellection {
-    pub fn edit(&mut self) {
+    pub fn edit(&mut self) -> &mut Self {
         let sections = menu_sections();
         loop {
-            println!("{}", sections[0]);
             println!("{}", sections[1]);
-            let check = ask_for_input("");
+            let check = ask_for_input(sections[0]);
             match check.as_str() {
                 // drive menu
                 "1" => {
                     loop {
-                        println!("{}", sections[0]);
                         println!("{}", sections[2]);
-                        let check = ask_for_input("");
+                        let check = ask_for_input(sections[0]);
                         match check.as_str() {
                             "1" => self.drives.drive_questions(),
                             "2" => self.drives.drive_gpt(),
                             "3" => break,
                             _ => continue,
-                        }
+                        };
                     }
                     continue;
                 }
                 // swap menu
                 "2" => {
                     loop {
-                        println!("{}", sections[0]);
                         println!("{}", sections[3]);
-                        let check = ask_for_input("");
+                        let check = ask_for_input(sections[0]);
                         match check.as_str() {
                             "1" => self.drives.swap_part_question(),
                             "2" => self.drives.swap_size_set(),
                             "3" => break,
                             _ => continue,
-                        }
+                        };
                     }
                     continue;
                 }
                 // root menu
                 "3" => {
                     loop {
-                        println!("{}", sections[0]);
                         println!("{}", sections[4]);
-                        let check = ask_for_input("");
+                        let check = ask_for_input(sections[0]);
                         match check.as_str() {
                             "1" => self.drives.root_sys_questions_size(),
                             "2" => self.drives.root_sys_question_format(),
                             "3" => break,
                             _ => continue,
-                        }
+                        };
                     }
                     continue;
                 }
@@ -156,50 +172,31 @@ impl UserSellection {
                             "3" => self.drives.home_part_custom_set(),
                             "4" => break,
                             _ => continue,
-                        }
+                        };
                     }
                     continue;
                 }
                 // user menu
                 "5" => {
                     loop {
-                        println!("{}", sections[0]);
                         println!("{}", sections[6]);
-                        let check = ask_for_input("");
+                        let check = ask_for_input(sections[0]);
                         match check.as_str() {
                             "1" => self.users.name_question(),
                             "2" => self.users.wheel_question(),
                             "3" => self.users.sudoer_question(),
                             "4" => {
                                 loop {
-                                    println!("{}", sections[0]);
                                     println!("{}", sections[7]);
-                                    let check = ask_for_input("");
+                                    let check = ask_for_input(sections[0]);
                                     match check.as_str() {
-                                        "1" => self.users.pass_question(),
+                                        "1" => {
+                                            self.users.pass_question();
+                                            continue;
+                                        }
                                         "2" => {
-                                            let root_pass = loop {
-                                                let first_go = prompt_password_stdout(
-                                                    "Please enter desired root password:",
-                                                )
-                                                .unwrap();
-                                                let second_go = prompt_password_stdout(
-                                                    "Please reenter desired root password:",
-                                                )
-                                                .unwrap();
-
-                                                if first_go == second_go {
-                                                    break second_go;
-                                                } else {
-                                                    println!(
-                                                        "passwords do not match, please try again"
-                                                    );
-                                                }
-                                            };
-                                            self.root = Users {
-                                                user_pass: root_pass,
-                                                ..Users::default()
-                                            };
+                                            self.set_root_pass();
+                                            continue;
                                         }
                                         "3" => break,
                                         _ => continue,
@@ -209,15 +206,14 @@ impl UserSellection {
                             }
                             "5" => break,
                             _ => continue,
-                        }
+                        };
                     }
                     continue;
                 }
 
-                "6" => break,
+                "6" => break self,
                 _ => continue,
             }
         }
     }
 }
-

@@ -1,13 +1,9 @@
 //! RALI aimes to make the installation and redeployment of an arch based system as painless as possible.
-//! # Bugs
-//! * Currently the application has no way of knowing what partitions should be mapted to what phisical disk
-//!     * need to make it take the argument of /dev/sda and add approriate partition numbers
 
-use rpassword::prompt_password_stdout;
 use std::io::{self, Write};
 use std::process::Command;
 pub mod user_ops;
-pub use crate::user_ops::{UserSellection, users::Users};
+pub use crate::user_ops::{users::Users, UserSellection};
 
 /// Ask the user for confirmation and returns the result
 pub fn ask_for_input(message: &str) -> String {
@@ -59,81 +55,74 @@ pub fn answer_to_bool(answer: String) -> bool {
 pub fn user_survay() -> UserSellection {
     let mut answers = UserSellection::default();
 
-    answers.drives.drive_questions();
-    answers.drives.drive_gpt();
-    answers.drives.swap_part_question();
-    answers.drives.swap_size_set();
-    answers.drives.root_sys_questions_size();
-    answers.drives.root_sys_question_format();
-    answers.drives.home_questions_sep_part();
-    answers.drives.home_part_custom_set();
-    answers.drives.home_no_custom_set();
-    answers.users.name_question();
-    answers.users.wheel_question();
-    answers.users.sudoer_question();
-    answers.users.pass_question();
-
-    let root_pass = loop {
-        let first_go = prompt_password_stdout("Please enter desired root password:").unwrap();
-        let second_go = prompt_password_stdout("Please reenter desired root password:").unwrap();
-
-        if first_go == second_go {
-            break second_go;
-        } else {
-            println!("passwords do not match, please try again");
-        }
-    };
-    answers.root = Users {
-        user_pass: root_pass,
-        ..Users::default()
-    };
+    answers
+        .drives
+        .drive_questions()
+        .drive_gpt()
+        .swap_part_question()
+        .swap_size_set()
+        .root_sys_questions_size()
+        .root_sys_question_format()
+        .home_questions_sep_part()
+	.home_questions_have_another_home_part()
+        .home_part_custom_set()
+        .home_no_custom_set()
+	.build_drive_ids();
+    answers
+        .users
+        .name_question()
+        .wheel_question()
+        .sudoer_question()
+        .pass_question();
+    answers.set_root_pass();
     answers
 }
 
 pub fn run() {
     let mut choices = user_survay();
+    choices.drives.build_drive_ids();
     loop {
-
-    let read_out = format!(
-        "Main Drive Id: {}
-GPT with bois: {}
+        let read_out = format!(
+            "Main Drive Id: {}
+GPT with BIOS: {}
+GPT Boot Partition: {}
 Swap Partition: {}
 Swap Size: {}Mib
 Swap Id: {}
-Root File System: {}
-Root fs Size: {}Mib
-Root fs Format: {:?}
+Root Filesystem: {}
+Root Filesystem Size: {}Mib
+Root Filesystem Format: {:?}
 Seperate Home Partition: {}
-Seperate User Home Part: {}
+Custom User Home Partition: {}
 Home Partition Id: {}
 User Name: {}
 Wheel Group: {}
 Sudoers File: {}",
-        choices.drives.drive_id,
-        choices.drives.gpt_with_bios,
-        choices.drives.format_swap,
-        choices.drives.swap_size,
-        choices.drives.swap_id,
-        choices.drives.root_sys_id,
-        choices.drives.root_sys_size,
-        choices.drives.root_sys_format,
-        choices.drives.home_part,
-        choices.drives.home_part_exist,
-        choices.drives.home_id,
-        choices.users.user_name,
-        choices.users.is_wheel,
-        choices.users.is_sudoer
-    );
+            choices.drives.drive_id,
+            choices.drives.gpt_with_bios,
+	    choices.drives.gpt_boot_part,
+            choices.drives.format_swap,
+            choices.drives.swap_size,
+            choices.drives.swap_id,
+            choices.drives.root_sys_id,
+            choices.drives.root_sys_size,
+            choices.drives.root_sys_format,
+            choices.drives.home_part,
+            choices.drives.home_part_exist,
+            choices.drives.home_id,
+            choices.users.user_name,
+            choices.users.is_wheel,
+            choices.users.is_sudoer
+        );
 
-    println!("{}", read_out);
+        println!("{}", read_out);
 
-    let need_redo = answer_to_bool(ask_for_input("Is this correct? (y/n)"));
-    if !need_redo {
-        choices.edit();
-    }else {
-	break
-
-    }
-
+        let need_redo = answer_to_bool(ask_for_input("Is this correct? (y/n)"));
+        if !need_redo {
+            choices.edit();
+	    choices.drives.build_drive_ids();
+        } else {
+            break;
+        }
     }
 }
