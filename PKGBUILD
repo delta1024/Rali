@@ -19,7 +19,7 @@ md5sums=('SKIP')
 pkgver() {
 	cd "${_pkgname}"
 # Git, tags available
-	printf "0.1.r%s.%s" "$(git rev-list --count HEAD)" # "$(git rev-parse --short HEAD)"  
+	printf "0.1.r%s" "$(git rev-list --count HEAD)" # "$(git rev-parse --short HEAD)"  
 
 }
 
