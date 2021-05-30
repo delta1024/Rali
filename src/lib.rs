@@ -1,12 +1,37 @@
+// <RALI - Rali, the Arch Linux Installer>
+// Copyright (c) <2021>  <Jacob Stannix>
+//
+// this program is free software: you can redistribute it and/or modify
+// it under the terms of the gnu general public license as published by
+// the free software foundation, either version 3 of the license, or
+// (at your option) any later version.
+//
+// this program is distributed in the hope that it will be useful,
+// but without any warranty; without even the implied warranty of
+// merchantability or fitness for a particular purpose.  see the
+// gnu general public license for more details.
+//
+// you should have received a copy of the gnu general public license
+// along with this program.  if not, see <https://www.gnu.org/licenses/> 
 //! RALI aimes to make the installation and redeployment of an arch based system as painless as possible.
+//! # TODO
+//! * create wrapper for parted
+//! * create const for basic pacman.conf
+//! * Define logic for what drive goes where
+//! * Create menu module
+//! * Implement toml support
 
 use std::io::{self, Write};
 use std::process::Command;
-pub mod user_ops;
-pub use crate::user_ops::{users::Users, UserSellection};
+pub(crate) mod user_ops;
+pub(crate) use crate::user_ops::UserSellection;
+pub(crate) mod packages;
+pub(crate) mod parted;
+pub(crate) mod menus;
+pub(crate) mod mirrors;
 
-/// Ask the user for confirmation and returns the result
 pub fn ask_for_input(message: &str) -> String {
+    //! Ask the user for confirmation and returns the result
     println!("{}", message);
     let mut response = String::new();
     io::stdin()
@@ -16,7 +41,8 @@ pub fn ask_for_input(message: &str) -> String {
     response
 }
 
-fn fdisk_output() {
+pub(crate) fn fdisk_output() {
+    //! Outputs fdisk -l
     let fdisk_out = Command::new("/usr/bin/fdisk")
         .arg(r#"-l"#)
         .output()
@@ -25,8 +51,8 @@ fn fdisk_output() {
     io::stderr().write_all(&fdisk_out.stderr).unwrap();
 }
 
-/// converts the given String to the appropriate size value
-pub fn to_mib(x: String) -> u32 {
+pub(crate) fn to_mib(x: String) -> u32 {
+    //! converts the given String to the appropriate size value
     let mut x_clone = x.clone();
     let sufix_value = x.len() - 1;
     let disk_size: String = x_clone.drain(..sufix_value).collect();
@@ -42,8 +68,8 @@ pub fn to_mib(x: String) -> u32 {
     n
 }
 
-/// converts answer string to bool
-pub fn answer_to_bool(answer: String) -> bool {
+pub(crate) fn answer_to_bool(answer: String) -> bool {
+    //! converts answer string to bool
     if answer == "y" || answer == "yes" {
         return true;
     } else {
@@ -51,8 +77,8 @@ pub fn answer_to_bool(answer: String) -> bool {
     }
 }
 
-/// survays the user for their desired system configuration prior to starting the installation process.
-pub fn user_survay() -> UserSellection {
+fn user_survay() -> UserSellection {
+    //! survays the user for their desired system configuration prior to starting the installation process.
     let mut answers = UserSellection::default();
 
     answers
@@ -64,10 +90,10 @@ pub fn user_survay() -> UserSellection {
         .root_sys_questions_size()
         .root_sys_question_format()
         .home_questions_sep_part()
-	.home_questions_have_another_home_part()
+        .home_questions_have_another_home_part()
         .home_part_custom_set()
         .home_no_custom_set()
-	.build_drive_ids();
+        .build_drive_ids();
     answers
         .users
         .name_question()
@@ -83,7 +109,7 @@ pub fn run() {
     choices.drives.build_drive_ids();
     loop {
         let read_out = format!(
-            "Main Drive Id: {}
+            "\nMain Drive Id: {}
 GPT with BIOS: {}
 GPT Boot Partition: {}
 Swap Partition: {}
@@ -100,7 +126,7 @@ Wheel Group: {}
 Sudoers File: {}",
             choices.drives.drive_id,
             choices.drives.gpt_with_bios,
-	    choices.drives.gpt_boot_part,
+            choices.drives.gpt_boot_part,
             choices.drives.format_swap,
             choices.drives.swap_size,
             choices.drives.swap_id,
@@ -120,7 +146,7 @@ Sudoers File: {}",
         let need_redo = answer_to_bool(ask_for_input("Is this correct? (y/n)"));
         if !need_redo {
             choices.edit();
-	    choices.drives.build_drive_ids();
+            choices.drives.build_drive_ids();
         } else {
             break;
         }

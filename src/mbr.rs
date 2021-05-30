@@ -1,5 +1,4 @@
 //! This module houses all of the fucitons related to the formating of Master Boot Record partitions
-// use std::path::Path;
 use mbrman;
 /// This fuction is designed to be used in conjunciton with an already formated disk.
 /// # Panics
