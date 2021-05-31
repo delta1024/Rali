@@ -18,4 +18,3 @@
 //! # Wishlist
 //! * auto update mirrors from url instead of file lists
 const _BASIC_INSTALL_BIOS: &str = "base linux linux-firmware iwd grub man-db man-pages vim";
-

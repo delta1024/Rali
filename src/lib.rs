@@ -12,10 +12,12 @@
 // gnu general public license for more details.
 //
 // you should have received a copy of the gnu general public license
-// along with this program.  if not, see <https://www.gnu.org/licenses/> 
+// along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! RALI aimes to make the installation and redeployment of an arch based system as painless as possible.
 //! # TODO
 //! * create wrapper for parted
+//! * make dynamic menu to only show relevent menus
+//! * refactor menu for user sellect to be more moduler
 //! * create const for basic pacman.conf
 //! * Define logic for what drive goes where
 //! * Create menu module
@@ -25,10 +27,10 @@ use std::io::{self, Write};
 use std::process::Command;
 pub(crate) mod user_ops;
 pub(crate) use crate::user_ops::UserSellection;
-pub(crate) mod packages;
-pub(crate) mod parted;
 pub(crate) mod menus;
 pub(crate) mod mirrors;
+pub(crate) mod packages;
+pub(crate) mod parted;
 
 pub fn ask_for_input(message: &str) -> String {
     //! Ask the user for confirmation and returns the result
@@ -81,6 +83,7 @@ fn user_survay() -> UserSellection {
     //! survays the user for their desired system configuration prior to starting the installation process.
     let mut answers = UserSellection::default();
 
+    answers.mirrors.query();
     answers
         .drives
         .drive_questions()

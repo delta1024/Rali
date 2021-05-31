@@ -19,6 +19,7 @@ pub(crate) mod drives;
 use drives::Drives;
 use rpassword::prompt_password_stdout;
 pub(crate) mod users;
+use crate::mirrors::MirrorChoice;
 use users::Users;
 
 /// Defines the varrious disk formating options
@@ -47,13 +48,15 @@ impl Default for FileSysType {
 }
 /// holds user choices about configuration
 #[derive(Default)]
-pub struct UserSellection {
+pub(crate) struct UserSellection {
+    /// holds mirror information
+    pub(crate) mirrors: MirrorChoice,
     /// holds user drive config
-    pub drives: Drives,
+    pub(crate) drives: Drives,
     /// holds user config
-    pub users: Users,
+    pub(crate) users: Users,
     /// holds root user config
-    pub root: Users,
+    pub(crate) root: Users,
 }
 impl UserSellection {
     pub fn set_root_pass(&mut self) -> &mut Self {
@@ -78,6 +81,6 @@ impl UserSellection {
 
 impl UserSellection {
     pub(crate) fn edit(&mut self) -> &mut Self {
-	crate::menus::user_ops::print_menu(self)
+        crate::menus::user_ops::print_menu(self)
     }
 }
