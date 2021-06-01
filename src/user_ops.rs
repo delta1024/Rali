@@ -21,15 +21,16 @@ use curl::easy::Easy;
 use drives::Drives;
 use rpassword::prompt_password_stdout;
 pub(crate) mod users;
-use users::Users;
 use self::MirrorOptions::*;
+use regex::Regex;
+use users::Users;
 /// Houses options for fetching user personalised mirrorlist
 pub(crate) enum MirrorOptions {
-    Country(String),     // ?country={country}
-    Http(String),  // &proticol=http
-    Https(String), // &proticol=https
-    IPv4(String),  // &ip_version=4
-    IPv6(String),  // &ip_version=6
+    Country(String), // ?country={country}
+    Http(String),    // &proticol=http
+    Https(String),   // &proticol=https
+    IPv4(String),    // &ip_version=4
+    IPv6(String),    // &ip_version=6
 }
 /// Defines the varrious disk formating options
 #[derive(Clone)]
@@ -92,35 +93,39 @@ impl UserSellection {
     }
 
     pub(crate) fn make_mirror_list(self) -> String {
-	let mut url = String::from("https://archlinux.org/mirrorlist/");
-	for i in self.mirrors {
-	    match i {
-		Country(c) => url.push_str(&c),
-		Http(a) => url.push_str(&a), 
-		Https(a) => url.push_str(&a), 
-		IPv4(a) => url.push_str(&a), 
-		IPv6(a) => url.push_str(&a), 
-	    }
-	}
-	let mut data = Vec::new();
-	let mut handle = Easy::new();
-	handle.url(&url).unwrap();
-	{
-	    let mut transfer = handle.transfer();
-	    transfer.write_function(|new_data| {
-		data.extend_from_slice(new_data);
-		Ok(new_data.len())
-	    }).unwrap();
-	    transfer.perform().unwrap();
-	}
-let mirrorlist =  String::from_utf8(data).unwrap();
-	 
-	mirrorlist
+        let mut url = String::from("https://archlinux.org/mirrorlist/");
+        for i in self.mirrors {
+            match i {
+                Country(c) => url.push_str(&c),
+                Http(a) => url.push_str(&a),
+                Https(a) => url.push_str(&a),
+                IPv4(a) => url.push_str(&a),
+                IPv6(a) => url.push_str(&a),
+            }
+        }
+        let mut data = Vec::new();
+        let mut handle = Easy::new();
+        handle.url(&url).unwrap();
+        {
+            let mut transfer = handle.transfer();
+            transfer
+                .write_function(|new_data| {
+                    data.extend_from_slice(new_data);
+                    Ok(new_data.len())
+                })
+                .unwrap();
+            transfer.perform().unwrap();
+        }
+        let mirrorlist = String::from_utf8(data).unwrap();
+        let re = Regex::new(r"(?m)^#").unwrap();
+	let mirrorlist = re.replace_all(&mirrorlist, "");
+	
+        mirrorlist.to_string()
     }
 }
 
 impl UserSellection {
-#[allow(dead_code)]
+    #[allow(dead_code)]
     pub(crate) fn edit(&mut self) -> &mut Self {
         crate::menus::user_ops::print_menu(self)
     }

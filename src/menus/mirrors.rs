@@ -30,7 +30,7 @@ pub(crate) fn print_menu(sudo_self: &mut UserSellection) -> &mut UserSellection 
         println!("please select a country for your mirror list:");
         let answer = ask_for_input(MAIN_MENU);
         match answer.as_str() {
-            "1" => break "?country=All".to_string(),
+            "1" => break "?country=all".to_string(),
             "2" => {
                 break print_ac();
             }
