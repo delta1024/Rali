@@ -1,7 +1,7 @@
 pkgname=rali-testing
 _pkgname=archInstaller
 pkgname_=rali
-pkgver=0.1.r96
+pkgver=0.1.r97
 pkgrel=1
 pkgdesc="Rust Arch Linux Installer"
 arch=(x86_64)
