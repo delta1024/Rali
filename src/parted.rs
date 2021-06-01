@@ -24,7 +24,7 @@ fn format_command(drive: Drives) -> Vec<String> {
     if drive.gpt_with_bios {
         drive_commands.push("mklabel gpt".to_string());
         drive_commands.push("mkpart primary 1Mib 512Mib".to_string());
-	drive_commands.push("set 1 \"legacy_boot\" on".to_string())
+	drive_commands.push("set 1 \"bios_grub\" on".to_string())
     } else {
         drive_commands.push("mklabel msdos".to_string());
     }
