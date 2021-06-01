@@ -73,13 +73,12 @@ impl DriveSize {
         sizes
     }
 }
-fn rest_of_disk(part_start_place: u32, disk: &str) -> u32 {
+fn rest_of_disk(_part_start_place: u32, _disk: &str) -> u32 {
     let mut s = System::new();
     s.refresh_disks();
     for disks in s.get_disks(){
 	println!("{:?}",disks.get_mount_point());
 	}
-    };
     1000000
 }
 pub(crate) fn format(drive: Drives) -> Result<(), std::io::Error> {
