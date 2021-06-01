@@ -34,9 +34,9 @@ fn format_command(drive: Drives) -> Vec<String> {
             sizes.swap_start, sizes.swap_end
         ));
 	if !drive.gpt_with_bios {
-	drive_commands.push("set 2 \"swap\" on".to_string());
-	}else {
 	drive_commands.push("set 1 \"swap\" on".to_string());
+	}else {
+	drive_commands.push("set 2 \"swap\" on".to_string());
 	    
 	}
     }
