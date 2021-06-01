@@ -33,7 +33,12 @@ fn format_command(drive: Drives) -> Vec<String> {
             "mkpart primary {}Mib {}Mib",
             sizes.swap_start, sizes.swap_end
         ));
+	if !drive.gpt_with_bios {
+	drive_commands.push("set 2 \"swap\" on".to_string());
+	}else {
 	drive_commands.push("set 1 \"swap\" on".to_string());
+	    
+	}
     }
     drive_commands.push(format!(
         "mkpart primary {}Mib {}Mib",
