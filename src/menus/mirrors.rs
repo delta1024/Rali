@@ -1,6 +1,22 @@
+// <RALI - Rali, the Arch Linux Installer>
+// Copyright (c) <2021>  <Jacob Stannix>
+//
+// this program is free software: you can redistribute it and/or modify
+// it under the terms of the gnu general public license as published by
+// the free software foundation, either version 3 of the license, or
+// (at your option) any later version.
+//
+// this program is distributed in the hope that it will be useful,
+// but without any warranty; without even the implied warranty of
+// merchantability or fitness for a particular purpose.  see the
+// gnu general public license for more details.
+//
+// you should have received a copy of the gnu general public license
+// along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! Holds menu for mirror list selection
+use crate::user_ops::MirrorOptions;
 use crate::ask_for_input;
-use crate::mirrors::{MirrorChoice, MirrorOptions};
+use crate::user_ops::UserSellection;
 
 const MAIN_MENU: &str = "1) all
 2) A-C
@@ -9,7 +25,7 @@ const MAIN_MENU: &str = "1) all
 5) M-R
 6) S-V";
 
-pub(crate) fn print_menu(sudo_self: &mut MirrorChoice) -> &mut MirrorChoice {
+pub(crate) fn print_menu(sudo_self: &mut UserSellection) -> &mut UserSellection {
     let answer = loop {
         println!("please select a country for your mirror list:");
         let answer = ask_for_input(MAIN_MENU);
@@ -33,7 +49,7 @@ pub(crate) fn print_menu(sudo_self: &mut MirrorChoice) -> &mut MirrorChoice {
             _ => continue,
         };
     };
-    sudo_self.options.push(MirrorOptions::Country(answer));
+    sudo_self.mirrors.push(MirrorOptions::Country(answer));
     let sudo_self = ask_for_net_format(sudo_self);
     sudo_self
 }
@@ -45,22 +61,22 @@ const NET_SET_MENU: &str = "Please sellect the desired protocoles for your mirro
 4) ipv6
 eg: 1 2 4";
 
-fn ask_for_net_format(sudo_self: &mut MirrorChoice) -> &mut MirrorChoice {
+fn ask_for_net_format(sudo_self: &mut UserSellection) -> &mut UserSellection {
     let answer = ask_for_input(NET_SET_MENU);
     let answer = answer.split_whitespace();
     for i in answer {
         match i {
             "1" => sudo_self
-                .options
+                .mirrors
                 .push(MirrorOptions::Http("&protocol=http".to_string())),
             "2" => sudo_self
-                .options
+                .mirrors
                 .push(MirrorOptions::Https("&protocol=https".to_string())),
             "3" => sudo_self
-                .options
+                .mirrors
                 .push(MirrorOptions::IPv4("&ip_version=4".to_string())),
             "4" => sudo_self
-                .options
+                .mirrors
                 .push(MirrorOptions::IPv6("&ip_version=6".to_string())),
             _ => continue,
         }

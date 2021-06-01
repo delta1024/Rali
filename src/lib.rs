@@ -15,22 +15,106 @@
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! RALI aimes to make the installation and redeployment of an arch based system as painless as possible.
 //! # TODO
+//! * implement fetching of mirror list from the archlinux server
 //! * create wrapper for parted
-//! * make dynamic menu to only show relevent menus
+//! * make dynamic menu to only show relevent items
 //! * refactor menu for user sellect to be more moduler
 //! * create const for basic pacman.conf
 //! * Define logic for what drive goes where
-//! * Create menu module
+//! * find a solution for configuring the new base system
 //! * Implement toml support
+//! * configure
 
 use std::io::{self, Write};
 use std::process::Command;
 pub(crate) mod user_ops;
 pub(crate) use crate::user_ops::UserSellection;
 pub(crate) mod menus;
-pub(crate) mod mirrors;
 pub(crate) mod packages;
 pub(crate) mod parted;
+
+pub fn run() {
+//     let mut choices = user_survay();
+//     choices.drives.build_drive_ids();
+//     loop {
+//         let read_out = format!(
+//             "\nMain Drive Id: {}
+// GPT with BIOS: {}
+// GPT Boot Partition: {}
+// Swap Partition: {}
+// Swap Size: {}Mib
+// Swap Id: {}
+// Root Filesystem: {}
+// Root Filesystem Size: {}Mib
+// Root Filesystem Format: {:?}
+// Seperate Home Partition: {}
+// Custom User Home Partition: {}
+// Home Partition Id: {}
+// User Name: {}
+// Wheel Group: {}
+// Sudoers File: {}",
+//             choices.drives.drive_id,
+//             choices.drives.gpt_with_bios,
+//             choices.drives.gpt_boot_part,
+//             choices.drives.format_swap,
+//             choices.drives.swap_size,
+//             choices.drives.swap_id,
+//             choices.drives.root_sys_id,
+//             choices.drives.root_sys_size,
+//             choices.drives.root_sys_format,
+//             choices.drives.home_part,
+//             choices.drives.home_part_exist,
+//             choices.drives.home_id,
+//             choices.users.user_name,
+//             choices.users.is_wheel,
+//             choices.users.is_sudoer
+//         );
+
+//         println!("{}", read_out);
+
+//         let need_redo = answer_to_bool(ask_for_input("Is this correct? (y/n)"));
+//         if !need_redo {
+//             choices.edit();
+//             choices.drives.build_drive_ids();
+//         } else {
+//             break;
+//         }
+
+//     }
+    let mut choices = UserSellection::default();
+    choices.query_mirrors();
+
+    let mirrorlist = choices.make_mirror_list();
+    println!("{}", mirrorlist);
+}
+#[allow(dead_code)]
+fn user_survay() -> UserSellection {
+    //! survays the user for their desired system configuration prior to starting the installation process.
+    let mut answers = UserSellection::default();
+
+    answers.query_mirrors();
+    answers
+        .drives
+        .drive_questions()
+        .drive_gpt()
+        .swap_part_question()
+        .swap_size_set()
+        .root_sys_questions_size()
+        .root_sys_question_format()
+        .home_questions_sep_part()
+        .home_questions_have_another_home_part()
+        .home_part_custom_set()
+        .home_no_custom_set()
+        .build_drive_ids();
+    answers
+        .users
+        .name_question()
+        .wheel_question()
+        .sudoer_question()
+        .pass_question();
+    answers.set_root_pass();
+    answers
+}
 
 pub fn ask_for_input(message: &str) -> String {
     //! Ask the user for confirmation and returns the result
@@ -41,6 +125,15 @@ pub fn ask_for_input(message: &str) -> String {
         .expect("Failed to read line");
     response.pop();
     response
+}
+
+pub(crate) fn answer_to_bool(answer: String) -> bool {
+    //! converts answer string to bool
+    if answer == "y" || answer == "yes" {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 pub(crate) fn fdisk_output() {
@@ -70,88 +163,5 @@ pub(crate) fn to_mib(x: String) -> u32 {
     n
 }
 
-pub(crate) fn answer_to_bool(answer: String) -> bool {
-    //! converts answer string to bool
-    if answer == "y" || answer == "yes" {
-        return true;
-    } else {
-        return false;
-    }
-}
 
-fn user_survay() -> UserSellection {
-    //! survays the user for their desired system configuration prior to starting the installation process.
-    let mut answers = UserSellection::default();
 
-    answers.mirrors.query();
-    answers
-        .drives
-        .drive_questions()
-        .drive_gpt()
-        .swap_part_question()
-        .swap_size_set()
-        .root_sys_questions_size()
-        .root_sys_question_format()
-        .home_questions_sep_part()
-        .home_questions_have_another_home_part()
-        .home_part_custom_set()
-        .home_no_custom_set()
-        .build_drive_ids();
-    answers
-        .users
-        .name_question()
-        .wheel_question()
-        .sudoer_question()
-        .pass_question();
-    answers.set_root_pass();
-    answers
-}
-
-pub fn run() {
-    let mut choices = user_survay();
-    choices.drives.build_drive_ids();
-    loop {
-        let read_out = format!(
-            "\nMain Drive Id: {}
-GPT with BIOS: {}
-GPT Boot Partition: {}
-Swap Partition: {}
-Swap Size: {}Mib
-Swap Id: {}
-Root Filesystem: {}
-Root Filesystem Size: {}Mib
-Root Filesystem Format: {:?}
-Seperate Home Partition: {}
-Custom User Home Partition: {}
-Home Partition Id: {}
-User Name: {}
-Wheel Group: {}
-Sudoers File: {}",
-            choices.drives.drive_id,
-            choices.drives.gpt_with_bios,
-            choices.drives.gpt_boot_part,
-            choices.drives.format_swap,
-            choices.drives.swap_size,
-            choices.drives.swap_id,
-            choices.drives.root_sys_id,
-            choices.drives.root_sys_size,
-            choices.drives.root_sys_format,
-            choices.drives.home_part,
-            choices.drives.home_part_exist,
-            choices.drives.home_id,
-            choices.users.user_name,
-            choices.users.is_wheel,
-            choices.users.is_sudoer
-        );
-
-        println!("{}", read_out);
-
-        let need_redo = answer_to_bool(ask_for_input("Is this correct? (y/n)"));
-        if !need_redo {
-            choices.edit();
-            choices.drives.build_drive_ids();
-        } else {
-            break;
-        }
-    }
-}
