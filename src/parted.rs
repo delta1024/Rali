@@ -22,10 +22,10 @@ fn format_command(drive: Drives) -> Vec<String> {
     let sizes = DriveSize::new(&drive);
     drive_commands.push(device);
     if drive.gpt_with_bios {
-        drive_commands.push("mklable gpt".to_string());
+        drive_commands.push("mklabel gpt".to_string());
         drive_commands.push("mkpart primary 1Mib 512Mib".to_string());
     } else {
-        drive_commands.push("mklabel bios".to_string());
+        drive_commands.push("mklabel msdos".to_string());
     }
     if drive.format_swap {
         drive_commands.push(format!(
