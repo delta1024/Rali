@@ -74,8 +74,7 @@ impl DriveSize {
     }
 }
 fn rest_of_disk(_part_start_place: u32, _disk: &str) -> u32 {
-    let mut s = System::new();
-    s.refresh_disks();
+    let s = System::new_all();
     for disks in s.get_disks(){
 	println!("{:?}",disks.get_mount_point());
 	}
