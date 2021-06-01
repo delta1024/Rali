@@ -123,13 +123,13 @@ fn rest_of_disk(part_start_place: u32, disk: &str) -> u32 {
 
 pub(crate) fn format(drive: Drives) -> Result<(), std::io::Error> {
     let command = format_string(drive.clone());
-    println!("{}", command);
-    // let parted = std::process::Command:: new("/usr/bin/parted")
-    // 	.args(&["--scripted", &command])
-    // 	.output()
-    // 	.expect("Failed to execute process");
-    // io::stdout().write_all(&parted.stdout).unwrap();
-    // io::stderr().write_all(&parted.stderr
-    // ).unwrap();
+    println!("Partitionig Disks");
+    let parted = std::process::Command:: new("/usr/bin/parted")
+	.args(&["--scripted", &command])
+	.output()
+	.expect("Failed to execute process");
+    io::stdout().write_all(&parted.stdout).unwrap();
+    io::stderr().write_all(&parted.stderr
+    ).unwrap();
     Ok(())
 }
