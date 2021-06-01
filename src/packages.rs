@@ -15,6 +15,4 @@
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! This Module holds all the preconfigured package lists
 //! You will still need to configure the system yourself
-//! # Wishlist
-//! * auto update mirrors from url instead of file lists
 const _BASIC_INSTALL_BIOS: &str = "base linux linux-firmware iwd grub man-db man-pages vim";

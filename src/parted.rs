@@ -14,10 +14,40 @@
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! wrapper for parted specific to the needs of this application
+use std::io::{self, Write};
 use crate::user_ops::drives::Drives;
-use std::path::Path;
-fn _format_string(_drive: Drives) -> String {
-    todo!("");
+fn format_string(drive: Drives) -> String {
+    let mut command = String::new();
+    let device = format! {"{} \\\n", drive.drive_id};
+    let mut drive_commands: Vec<String> = vec![];
+    let sizes = DriveSize::new(&drive);
+    command.push_str(&device);
+    if drive.gpt_with_bios {
+        drive_commands.push("mklable gpt \\\n".to_string());
+        drive_commands.push("mkpart primary 1Mib 512Mib \\\n".to_string());
+    } else {
+        drive_commands.push("mklabel bios \\\n".to_string());
+    }
+    if drive.format_swap {
+        drive_commands.push(format!(
+            "mkpart primary {}Mib {}Mib \\\n",
+            sizes.swap_start, sizes.swap_end
+        ))
+    }
+    drive_commands.push(format!(
+        "mkpart primary {}Mib {}Mib \\\n",
+        sizes.root_start, sizes.root_end
+    ));
+    if drive.home_part && !drive.home_part_exist {
+        drive_commands.push(format!(
+            "mkpart primary {}Mib {}Mib \\\n",
+            sizes.home_start, sizes.home_end
+        ))
+    }
+    for i in drive_commands {
+        command.push_str(&i);
+    }
+    command
 }
 #[derive(Default)]
 struct DriveSize {
@@ -92,36 +122,14 @@ fn rest_of_disk(part_start_place: u32, disk: &str) -> u32 {
 }
 
 pub(crate) fn format(drive: Drives) -> Result<(), std::io::Error> {
-    let mut command = "parted --script ".to_string();
-    let device = format! {"{} \\\n", drive.drive_id};
-    let mut drive_commands: Vec<String> = vec![];
-    let sizes = DriveSize::new(&drive);
-    command.push_str(&device);
-    if drive.gpt_with_bios {
-        drive_commands.push("mklable gpt \\\n".to_string());
-        drive_commands.push("mkpart primary 1Mib 512Mib \\\n".to_string());
-    } else {
-        drive_commands.push("mklabel bios \\\n".to_string());
-    }
-    if drive.format_swap {
-        drive_commands.push(format!(
-            "mkpart primary {}Mib {}Mib \\\n",
-            sizes.swap_start, sizes.swap_end
-        ))
-    }
-    drive_commands.push(format!(
-        "mkpart primary {}Mib {}Mib \\\n",
-        sizes.root_start, sizes.root_end
-    ));
-    if drive.home_part && !drive.home_part_exist {
-        drive_commands.push(format!(
-            "mkpart primary {}Mib {}Mib \\\n",
-            sizes.home_start, sizes.home_end
-        ))
-    }
-    for i in drive_commands {
-        command.push_str(&i);
-    }
+    let command = format_string(drive.clone());
     println!("{}", command);
+    // let parted = std::process::Command:: new("/usr/bin/parted")
+    // 	.args(&["--scripted", &command])
+    // 	.output()
+    // 	.expect("Failed to execute process");
+    // io::stdout().write_all(&parted.stdout).unwrap();
+    // io::stderr().write_all(&parted.stderr
+    // ).unwrap();
     Ok(())
 }
