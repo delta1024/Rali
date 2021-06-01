@@ -14,7 +14,8 @@
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! wrapper for parted specific to the needs of this application
-use mbrman;
+use sysinfo::{System, SystemExt, DiskExt};
+use std::path::Path;
 use crate::user_ops::drives::Drives;
 fn _format_string(_drive: Drives) -> String {
     todo!("");
@@ -73,15 +74,14 @@ impl DriveSize {
     }
 }
 fn rest_of_disk(part_start_place: u32, disk: &str) -> u32 {
- let mut f = std::fs::File::open(disk)
-    .expect("could not open disk");
-let mbr = mbrman::MBR::read_from(&mut f, 512)
-    .expect("could not find MBR");   
-    let end_num = (mbr.sectors as u32 * 512) / 1024 / 1024;
-    end_num  - part_start_place
-	    // get disk size in sectors
-	    // convert sectors to mb
-	// subtract root_start from total disk size
+    let mut s = System::new();
+    s.refresh_disks();
+    for disks in s.get_disks(){
+	if disks.get_mount_point() == Path::new(disk){
+	println!("{}",disks.get_total_space());
+	}
+    };
+    1000000
 }
 pub(crate) fn format(drive: Drives) -> Result<(), std::io::Error> {
     let mut command = "parted --script ".to_string();
