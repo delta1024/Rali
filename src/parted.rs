@@ -16,38 +16,34 @@
 //! wrapper for parted specific to the needs of this application
 use std::io::{self, Write};
 use crate::user_ops::drives::Drives;
-fn format_string(drive: Drives) -> String {
-    let mut command = String::new();
-    let device = format! {"{} \\\n", drive.drive_id};
-    let mut drive_commands: Vec<String> = vec![];
+fn format_command(drive: Drives) -> Vec<String> {
+    let mut drive_commands: Vec<String> = vec!["--script".to_string()];
+    let device = format! {"{}", drive.drive_id};
     let sizes = DriveSize::new(&drive);
-    command.push_str(&device);
+    drive_commands.push(device);
     if drive.gpt_with_bios {
-        drive_commands.push("mklable gpt \\\n".to_string());
-        drive_commands.push("mkpart primary 1Mib 512Mib \\\n".to_string());
+        drive_commands.push("mklable gpt".to_string());
+        drive_commands.push("mkpart primary 1Mib 512Mib".to_string());
     } else {
-        drive_commands.push("mklabel bios \\\n".to_string());
+        drive_commands.push("mklabel bios".to_string());
     }
     if drive.format_swap {
         drive_commands.push(format!(
-            "mkpart primary {}Mib {}Mib \\\n",
+            "mkpart primary {}Mib {}Mib",
             sizes.swap_start, sizes.swap_end
         ))
     }
     drive_commands.push(format!(
-        "mkpart primary {}Mib {}Mib \\\n",
+        "mkpart primary {}Mib {}Mib",
         sizes.root_start, sizes.root_end
     ));
     if drive.home_part && !drive.home_part_exist {
         drive_commands.push(format!(
-            "mkpart primary {}Mib {}Mib \\\n",
+            "mkpart primary {}Mib {}Mib",
             sizes.home_start, sizes.home_end
         ))
     }
-    for i in drive_commands {
-        command.push_str(&i);
-    }
-    command
+   drive_commands
 }
 #[derive(Default)]
 struct DriveSize {
@@ -122,10 +118,10 @@ fn rest_of_disk(part_start_place: u32, disk: &str) -> u32 {
 }
 
 pub(crate) fn format(drive: Drives) -> Result<(), std::io::Error> {
-    let command = format_string(drive.clone());
+    let command = format_command(drive.clone());
     println!("Partitionig Disks");
-    let parted = std::process::Command:: new("/usr/bin/parted")
-	.args(&["--script", &command])
+    let parted = std::process::Command::new("/usr/bin/parted")
+	.args(command)
 	.output()
 	.expect("Failed to execute process");
     io::stdout().write_all(&parted.stdout).unwrap();
