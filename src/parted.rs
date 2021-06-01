@@ -39,11 +39,6 @@ fn format_command(drive: Drives) -> Vec<String> {
         "mkpart primary {}Mib {}Mib",
         sizes.root_start, sizes.root_end
     ));
-    if drive.format_swap {
-	drive_commands.push("set 2 \"root\" on".to_string());
-    }else {
-	drive_commands.push("set 1 \"root\" on".to_string());
-    }
     if drive.home_part && !drive.home_part_exist {
         drive_commands.push(format!(
             "mkpart primary {}Mib {}Mib",
