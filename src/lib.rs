@@ -18,8 +18,8 @@
 //! * create wrapper for parted
 //! * create wrapper for chroot
 //! * add guard to prevent user from erasing a disk what has existing partitions without confirmation
+//! * add option for user to have different home partition format
 //! * guard mirror menus against usesr error
-//! * implement option for blank imput to be rest of disk when configuring drives
 //! * make dynamic menu to only show relevent items
 //! * refactor menu for user sellect to be more moduler
 //! * create const for basic pacman.conf
