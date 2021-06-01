@@ -17,6 +17,7 @@
 //! # TODO
 //! * create wrapper for parted
 //! * create wrapper for chroot
+//! * add guard to prevent user from erasing a disk what has existing partitions without confirmation
 //! * guard mirror menus against usesr error
 //! * implement option for blank imput to be rest of disk when configuring drives
 //! * make dynamic menu to only show relevent items
