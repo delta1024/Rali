@@ -79,7 +79,8 @@ fn rest_of_disk(part_start_place: u32, disk: &str) -> u32 {
 	expect("could not create partition table");
     mbr.align = 1;
     let max = mbr.get_maximum_partition_size().unwrap_or(0);
-    ((max * 512) / 1024 / 1024) - part_start_place
+    let max = ((max * 512) / 1024 / 1024) - part_start_place;
+    max as u32
 }
 
 pub(crate) fn format(drive: Drives) -> Result<(), std::io::Error> {
