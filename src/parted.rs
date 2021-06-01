@@ -70,8 +70,8 @@ impl DriveSize {
 	if tests.home_part && !tests.home_part_exist {
 	    sizes.home_start = sizes.root_end;
 	sizes.home_end = if tests.home_part_size == 0 {
-	    rest_of_disk(sizes.home_start, &tests.drive_id)
-	    
+	    let rest = rest_of_disk(sizes.home_start, &tests.drive_id);
+	    sizes.home_start + rest
 	}else {
 	    tests.home_part_size + sizes.home_start
 	}; 
