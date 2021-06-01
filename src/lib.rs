@@ -34,69 +34,92 @@ pub(crate) use crate::user_ops::UserSellection;
 pub(crate) mod menus;
 pub(crate) mod packages;
 pub(crate) mod parted;
+use crate::packages::BASIC_INSTALL_BIOS;
 
 pub fn run() {
     let mut choices = user_survay();
     choices.drives.build_drive_ids();
-//     loop {
-//         let read_out = format!(
-//             "\nMain Drive Id: {}
-// GPT with BIOS: {}
-// GPT Boot Partition: {}
-// Swap Partition: {}
-// Swap Size: {}Mib
-// Swap Id: {}
-// Root Filesystem: {}
-// Root Filesystem Size: {}Mib
-// Root Filesystem Format: {}
-// Seperate Home Partition: {}
-// Custom User Home Partition: {}
-// Home Partition Id: {}
-// User Name: {}
-// Wheel Group: {}
-// Sudoers File: {}",
-//             choices.drives.drive_id,
-//             choices.drives.gpt_with_bios,
-//             choices.drives.gpt_boot_part,
-//             choices.drives.format_swap,
-//             choices.drives.swap_size,
-//             choices.drives.swap_id,
-//             choices.drives.root_sys_id,
-//             choices.drives.root_sys_size,
-//             choices.drives.root_sys_format.to_string(),
-//             choices.drives.home_part,
-//             choices.drives.home_part_exist,
-//             choices.drives.home_id,
-//             choices.users.user_name,
-//             choices.users.is_wheel,
-//             choices.users.is_sudoer
-//         );
+    loop {
+        let read_out = format!(
+            "\nMain Drive Id: {}
+GPT with BIOS: {}
+GPT Boot Partition: {}
+Swap Partition: {}
+Swap Size: {}Mib
+Swap Id: {}
+Root Filesystem: {}
+Root Filesystem Size: {}Mib
+Root Filesystem Format: {}
+Seperate Home Partition: {}
+Custom User Home Partition: {}
+Home Partition Id: {}
+User Name: {}
+Wheel Group: {}
+Sudoers File: {}",
+            choices.drives.drive_id,
+            choices.drives.gpt_with_bios,
+            choices.drives.gpt_boot_part,
+            choices.drives.format_swap,
+            choices.drives.swap_size,
+            choices.drives.swap_id,
+            choices.drives.root_sys_id,
+            choices.drives.root_sys_size,
+            choices.drives.root_sys_format.to_string(),
+            choices.drives.home_part,
+            choices.drives.home_part_exist,
+            choices.drives.home_id,
+            choices.users.user_name,
+            choices.users.is_wheel,
+            choices.users.is_sudoer
+        );
 
-//         println!("{}", read_out);
+        println!("{}", read_out);
 
-//         let need_redo = answer_to_bool(ask_for_input("Is this correct? (y/n)"));
-//         if !need_redo {
-//             choices.edit();
-//             choices.drives.build_drive_ids();
-//         } else {
-//             break;
-//         }
+        let need_redo = answer_to_bool(ask_for_input("Is this correct? (y/n)"));
+        if !need_redo {
+            choices.edit();
+            choices.drives.build_drive_ids();
+        } else {
+            break;
+        }
 
-//     }
+    }
 
-//     let mirrorlist = choices.clone();
-//     println!("Downloading mirrorlist");
-//     let mirrorlist = mirrorlist.make_mirror_list();
-//     println!("{}", mirrorlist);
+    let mirrorlist = choices.clone();
+    println!("Downloading mirrorlist");
+    let mirrorlist = mirrorlist.make_mirror_list();
+    std::fs::write("/etc/pacman.d/mirrorlist", mirrorlist).unwrap();
     println!("Partitioning Drives");
-    crate::parted::format(choices.drives).unwrap();
+    crate::parted::format(choices.drives.clone()).unwrap();
+    let mount = Command::new("/usr/bin/mount")
+	.args(&["/mnt", &choices.drives.root_sys_id])
+	.output()
+	.expect("Failed to execute process");
+    io::stdout().write_all(&mount.stdout).unwrap();
+    io::stderr().write_all(&mount.stderr).unwrap();
+
+    let swap_on = Command::new("/usr/bin/swapon")
+	.arg(&choices.drives.swap_id)
+	.output()
+	.expect("Failed to execute process");
+    io::stdout().write_all(&swap_on.stdout).unwrap();
+    io::stderr().write_all(&swap_on.stderr).unwrap();
+    let install_list: Vec<String> = BASIC_INSTALL_BIOS.split_whitespace().map(|x| x.to_string()).collect();
+    let pacstrap = Command::new("/usr/bin/pacstrap")
+	.args(&install_list)
+	.output()
+	.expect("Failed to execute process");
+    io::stdout().write_all(&pacstrap.stdout).unwrap();
+    io::stderr().write_all(&pacstrap.stderr).unwrap();
+    
+
 }
 #[allow(dead_code)]
 fn user_survay() -> UserSellection {
     //! survays the user for their desired system configuration prior to starting the installation process.
     let mut answers = UserSellection::default();
 
-    // answers.query_mirrors();
+    answers.query_mirrors();
     answers
         .drives
         .drive_questions()

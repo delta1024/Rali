@@ -15,4 +15,4 @@
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! This Module holds all the preconfigured package lists
 //! You will still need to configure the system yourself
-const _BASIC_INSTALL_BIOS: &str = "base linux linux-firmware iwd grub man-db man-pages vim";
+pub(crate) const BASIC_INSTALL_BIOS: &str = "/mnt base linux linux-firmware iwd grub man-db man-pages vim";
