@@ -125,7 +125,7 @@ pub(crate) fn format(drive: Drives) -> Result<(), std::io::Error> {
     let command = format_string(drive.clone());
     println!("Partitionig Disks");
     let parted = std::process::Command:: new("/usr/bin/parted")
-	.args(&["--scripted", &command])
+	.args(&["--script", &command])
 	.output()
 	.expect("Failed to execute process");
     io::stdout().write_all(&parted.stdout).unwrap();
