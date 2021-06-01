@@ -30,7 +30,7 @@ fn format_command(drive: Drives) -> Vec<String> {
     }
     if drive.format_swap {
         drive_commands.push(format!(
-            "mkpart primary swap {}Mib {}Mib",
+            "mkpart primary linux-swap {}Mib {}Mib",
             sizes.swap_start, sizes.swap_end
         ));
 	if drive.gpt_with_bios {
