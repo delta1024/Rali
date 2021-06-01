@@ -14,7 +14,6 @@
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! wrapper for parted specific to the needs of this application
-use sysinfo::{System, SystemExt, DiskExt};
 use std::path::Path;
 use crate::user_ops::drives::Drives;
 fn _format_string(_drive: Drives) -> String {
@@ -73,13 +72,16 @@ impl DriveSize {
         sizes
     }
 }
-fn rest_of_disk(_part_start_place: u32, _disk: &str) -> u32 {
-    let s = System::new_all();
-    for disk in s.get_disks(){
-	println!("{}", disk.get_total_space());
-	}
-    1000000
+fn rest_of_disk(part_start_place: u32, disk: &str) -> u32 {
+    let ss = 512;
+    let mut f = std::fs::File::open(disk).expect("cound not open disk");
+    let mut mbr = mbrman::MBR::new_from(&mut f, ss as u32, [0xff; 4]).
+	expect("could not create partition table");
+    mbr.align = 1;
+    let max = mbr.get_maximum_partition_size().unwrap_or(0);
+    ((max * 512) / 1024 / 1024) - part_start_place
 }
+
 pub(crate) fn format(drive: Drives) -> Result<(), std::io::Error> {
     let mut command = "parted --script ".to_string();
     let device = format! {"{} \\\n", drive.drive_id};
