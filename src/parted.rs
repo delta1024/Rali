@@ -24,7 +24,7 @@ fn format_command(drive: Drives) -> Vec<String> {
     if drive.gpt_with_bios {
         drive_commands.push("mklabel gpt".to_string());
         drive_commands.push("mkpart primary 1Mib 512Mib".to_string());
-	drive_commands.push("set 1 boot true".to_string())
+	drive_commands.push("set 1 boot on".to_string())
     } else {
         drive_commands.push("mklabel msdos".to_string());
     }
@@ -33,16 +33,16 @@ fn format_command(drive: Drives) -> Vec<String> {
             "mkpart primary {}Mib {}Mib",
             sizes.swap_start, sizes.swap_end
         ));
-	drive_commands.push("set 1 swap true".to_string());
+	drive_commands.push("set 1 swap on".to_string());
     }
     drive_commands.push(format!(
         "mkpart primary {}Mib {}Mib",
         sizes.root_start, sizes.root_end
     ));
     if drive.format_swap {
-	drive_commands.push("set 2 root true".to_string());
+	drive_commands.push("set 2 root on".to_string());
     }else {
-	drive_commands.push("set 1 root true".to_string());
+	drive_commands.push("set 1 root on".to_string());
     }
     if drive.home_part && !drive.home_part_exist {
         drive_commands.push(format!(
