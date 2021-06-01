@@ -77,8 +77,7 @@ fn rest_of_disk(part_start_place: u32, disk: &str) -> u32 {
     let mut s = System::new();
     s.refresh_disks();
     for disks in s.get_disks(){
-	if disks.get_mount_point() == Path::new(disk){
-	println!("{}",disks.get_total_space());
+	println!("{:?}",disks.get_mount_point());
 	}
     };
     1000000
