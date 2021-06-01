@@ -75,8 +75,8 @@ impl DriveSize {
 }
 fn rest_of_disk(_part_start_place: u32, _disk: &str) -> u32 {
     let s = System::new_all();
-    for disks in s.get_disks(){
-	println!("{:?}",disks.get_mount_point());
+    for disk in s.get_disks(){
+	println!("{}", disk.get_total_space());
 	}
     1000000
 }
