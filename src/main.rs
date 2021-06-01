@@ -13,29 +13,30 @@
 //
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>.
-use rali::{ask_for_input, run};
-use std::path::Path;
-use std::process;
+// use rali::{ask_for_input, run};
+use rali::run;
+// use std::path::Path;
+// use std::process;
 fn main() {
-    println!("Welcome to Arch Linux!");
-    let is_uefi_mode = Path::new("/sys/firmware/efi/efivars").exists();
-    if is_uefi_mode {
-        println!("EFI mode detected");
-    } else {
-        println!("BIOS mode detected");
-    }
-    let correct_mode_confirm = ask_for_input("Is this correct? (y/n)");
-    let correct_mode_confirm = if correct_mode_confirm == "y" || correct_mode_confirm == "yes" {
-        true
-    } else {
-        false
-    };
-    if !correct_mode_confirm {
-        println!("rebooting");
-        std::thread::sleep(std::time::Duration::from_secs(3));
-        process::Command::new("/usr/bin/reboot")
-            .spawn()
-            .expect("Failed to start process");
-    }
+    // println!("Welcome to Arch Linux!");
+    // let is_uefi_mode = Path::new("/sys/firmware/efi/efivars").exists();
+    // if is_uefi_mode {
+    //     println!("EFI mode detected");
+    // } else {
+    //     println!("BIOS mode detected");
+    // }
+    // let correct_mode_confirm = ask_for_input("Is this correct? (y/n)");
+    // let correct_mode_confirm = if correct_mode_confirm == "y" || correct_mode_confirm == "yes" {
+    //     true
+    // } else {
+    //     false
+    // };
+    // if !correct_mode_confirm {
+    //     println!("rebooting");
+    //     std::thread::sleep(std::time::Duration::from_secs(3));
+    //     process::Command::new("/usr/bin/reboot")
+    //         .spawn()
+    //         .expect("Failed to start process");
+    // }
     run();
 }

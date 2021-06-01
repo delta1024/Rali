@@ -15,15 +15,16 @@
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! RALI aimes to make the installation and redeployment of an arch based system as painless as possible.
 //! # TODO
-//! * implement fetching of mirror list from the archlinux server
 //! * create wrapper for parted
+//! * create wrapper for chroot
+//! * guard mirror menus against usesr error
+//! * implement option for blank imput to be rest of disk when configuring drives
 //! * make dynamic menu to only show relevent items
 //! * refactor menu for user sellect to be more moduler
 //! * create const for basic pacman.conf
 //! * Define logic for what drive goes where
 //! * find a solution for configuring the new base system
 //! * Implement toml support
-//! * configure
 
 use std::io::{self, Write};
 use std::process::Command;
@@ -34,8 +35,8 @@ pub(crate) mod packages;
 pub(crate) mod parted;
 
 pub fn run() {
-//     let mut choices = user_survay();
-//     choices.drives.build_drive_ids();
+    let mut choices = user_survay();
+    choices.drives.build_drive_ids();
 //     loop {
 //         let read_out = format!(
 //             "\nMain Drive Id: {}
@@ -46,7 +47,7 @@ pub fn run() {
 // Swap Id: {}
 // Root Filesystem: {}
 // Root Filesystem Size: {}Mib
-// Root Filesystem Format: {:?}
+// Root Filesystem Format: {}
 // Seperate Home Partition: {}
 // Custom User Home Partition: {}
 // Home Partition Id: {}
@@ -61,7 +62,7 @@ pub fn run() {
 //             choices.drives.swap_id,
 //             choices.drives.root_sys_id,
 //             choices.drives.root_sys_size,
-//             choices.drives.root_sys_format,
+//             choices.drives.root_sys_format.to_string(),
 //             choices.drives.home_part,
 //             choices.drives.home_part_exist,
 //             choices.drives.home_id,
@@ -81,18 +82,20 @@ pub fn run() {
 //         }
 
 //     }
-    let mut choices = UserSellection::default();
-    choices.query_mirrors();
 
-    let mirrorlist = choices.make_mirror_list();
-    println!("{}", mirrorlist);
+//     let mirrorlist = choices.clone();
+//     println!("Downloading mirrorlist");
+//     let mirrorlist = mirrorlist.make_mirror_list();
+//     println!("{}", mirrorlist);
+    println!("Partitioning Drives");
+    crate::parted::format(choices.drives).unwrap();
 }
 #[allow(dead_code)]
 fn user_survay() -> UserSellection {
     //! survays the user for their desired system configuration prior to starting the installation process.
     let mut answers = UserSellection::default();
 
-    answers.query_mirrors();
+    // answers.query_mirrors();
     answers
         .drives
         .drive_questions()
@@ -106,13 +109,13 @@ fn user_survay() -> UserSellection {
         .home_part_custom_set()
         .home_no_custom_set()
         .build_drive_ids();
-    answers
-        .users
-        .name_question()
-        .wheel_question()
-        .sudoer_question()
-        .pass_question();
-    answers.set_root_pass();
+    // answers
+    //     .users
+    //     .name_question()
+    //     .wheel_question()
+    //     .sudoer_question()
+    //     .pass_question();
+    // answers.set_root_pass();
     answers
 }
 
@@ -149,7 +152,11 @@ pub(crate) fn fdisk_output() {
 pub(crate) fn to_mib(x: String) -> u32 {
     //! converts the given String to the appropriate size value
     let mut x_clone = x.clone();
-    let sufix_value = x.len() - 1;
+    let sufix_value = if x.len() == 0 {
+	return 0
+    }else {
+    x.len() - 1
+    };
     let disk_size: String = x_clone.drain(..sufix_value).collect();
     let x = disk_size.parse::<u32>().unwrap();
     let n = match x_clone.as_str() {

@@ -25,6 +25,7 @@ use self::MirrorOptions::*;
 use regex::Regex;
 use users::Users;
 /// Houses options for fetching user personalised mirrorlist
+#[derive(Clone)]
 pub(crate) enum MirrorOptions {
     Country(String), // ?country={country}
     Http(String),    // &proticol=http
@@ -39,6 +40,17 @@ pub enum FileSysType {
     Ext3,
     Btrfs,
     Swap,
+}
+impl ToString for FileSysType {
+    fn to_string(&self) -> String{
+	match self {
+	    &FileSysType::Ext4 => String::from("ext4"),
+	    &FileSysType::Ext3 => String::from("ext3"),
+	    &FileSysType::Btrfs => String::from("btrfs"),
+	    &FileSysType::Swap => String::from("Swap"),
+	}
+	
+    }
 }
 impl FileSysType {
     pub fn new(answer: String) -> Self {
@@ -57,7 +69,7 @@ impl Default for FileSysType {
     }
 }
 /// holds user choices about configuration
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub(crate) struct UserSellection {
     /// holds mirror information
     pub(crate) mirrors: Vec<MirrorOptions>,
