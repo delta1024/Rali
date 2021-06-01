@@ -92,7 +92,7 @@ Sudoers File: {}",
     println!("Partitioning Drives");
     crate::parted::format(choices.drives.clone()).unwrap();
     let mount = Command::new("/usr/bin/mount")
-	.args(&["/mnt", &choices.drives.root_sys_id])
+	.args(&[&choices.drives.root_sys_id, "/mnt"])
 	.output()
 	.expect("Failed to execute process");
     io::stdout().write_all(&mount.stdout).unwrap();
