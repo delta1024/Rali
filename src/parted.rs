@@ -33,7 +33,7 @@ fn format_command(drive: Drives) -> Vec<String> {
             "mkpart primary {}Mib {}Mib",
             sizes.swap_start, sizes.swap_end
         ));
-	drive_commands.push("set 1 swap true");
+	drive_commands.push("set 1 swap true".to_string());
     }
     drive_commands.push(format!(
         "mkpart primary {}Mib {}Mib",
