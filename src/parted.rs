@@ -14,8 +14,8 @@
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! wrapper for parted specific to the needs of this application
-use std::path::Path;
 use crate::user_ops::drives::Drives;
+use std::path::Path;
 fn _format_string(_drive: Drives) -> String {
     todo!("");
 }
@@ -37,7 +37,7 @@ struct DriveSize {
 //     mkpart primary {root_end} {root_end + home_size} \ home drive
 impl DriveSize {
     fn new(tests: &Drives) -> Self {
-	let mut tests = tests.clone();
+        let mut tests = tests.clone();
         let mut sizes = DriveSize::default();
         if tests.gpt_with_bios {
             if tests.format_swap {
@@ -52,31 +52,39 @@ impl DriveSize {
                 sizes.root_start = 1;
             }
         }
-	if tests.format_swap {
-	    sizes.swap_end = sizes.swap_start + tests.swap_size;
-	    sizes.root_start = sizes.swap_end;
-	}
-	let root_size = if tests.root_sys_size == 0 {
+        if tests.format_swap {
+            sizes.swap_end = sizes.swap_start + tests.swap_size;
+            sizes.root_start = sizes.swap_end;
+        }
+        let root_size = if tests.root_sys_size == 0 {
+            if tests.home_part && !tests.home_part_exist {
+                tests.root_sys_questions_size();
+                tests.root_sys_size
+            } else {
+                rest_of_disk(sizes.root_start.clone(), &tests.drive_id)
+            }
+        } else {
+            tests.root_sys_size
+        };
+        sizes.root_end = sizes.root_start + root_size;
 	if tests.home_part && !tests.home_part_exist {
-	   tests.root_sys_questions_size();
-	    tests.root_sys_size
-
-	}else  {
-	    rest_of_disk(sizes.root_start.clone(), &tests.drive_id)
-	}
+	    sizes.home_start = sizes.root_end;
+	sizes.home_end = if tests.home_part_size == 0 {
+	    rest_of_disk(sizes.home_start, &tests.drive_id)
+	    
 	}else {
-	    tests.root_sys_size
-	};
-	sizes.root_end = sizes.root_start + root_size;
-
-        sizes
+	    tests.home_part_size + sizes.home_start
+	}; 
+	}
+	
+	sizes
     }
 }
 fn rest_of_disk(part_start_place: u32, disk: &str) -> u32 {
     let ss = 512;
     let mut f = std::fs::File::open(disk).expect("cound not open disk");
-    let mut mbr = mbrman::MBR::new_from(&mut f, ss as u32, [0xff; 4]).
-	expect("could not create partition table");
+    let mut mbr = mbrman::MBR::new_from(&mut f, ss as u32, [0xff; 4])
+        .expect("could not create partition table");
     mbr.align = 1;
     let max = mbr.get_maximum_partition_size().unwrap_or(0);
     let max: usize = ((max as usize * 512) / 1024 / 1024) - part_start_place as usize;
