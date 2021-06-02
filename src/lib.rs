@@ -121,7 +121,9 @@ Sudoers File: {}",
     loop {
 	child_out.read_line(&mut line).unwrap();
 	println!("{}", line);
+	line.clear();
     }
+    // find way to break loop when process finished
 }
 #[allow(dead_code)]
 fn user_survay() -> UserSellection {
