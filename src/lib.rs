@@ -104,9 +104,9 @@ Sudoers File: {}",
 	.expect("Failed to execute process");
     io::stdout().write_all(&swap_on.stdout).unwrap();
     io::stderr().write_all(&swap_on.stderr).unwrap();
-    let install_list: Vec<String> = BASIC_INSTALL_BIOS.split_whitespace().map(|x| x.to_string()).collect();
+    let _install_list: Vec<String> = BASIC_INSTALL_BIOS.split_whitespace().map(|x| x.to_string()).collect();
     let pacstrap = Command::new("/usr/bin/pacstrap")
-	.args(&install_list)
+	.args(&["/mnt", BASIC_INSTALL_BIOS])
 	.output()
 	.expect("Failed to execute process");
     io::stdout().write_all(&pacstrap.stdout).unwrap();
