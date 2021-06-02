@@ -28,7 +28,7 @@
 //! * Implement toml support
 
 use std::io::{self, Write};
-use std::process::Command;
+use std::process::{Command, Stdio};
 pub(crate) mod user_ops;
 pub(crate) use crate::user_ops::UserSellection;
 pub(crate) mod menus;
@@ -109,10 +109,12 @@ Sudoers File: {}",
         .split_whitespace()
         .map(|x| x.to_string())
         .collect();
-    let pacstrap = Command::new("/usr/bin/pacstrap")
+    let mut pacstrap = Command::new("/usr/bin/pacstrap")
         .args(install_list)
-        .output()
+	.stdout(Stdio::piped())
+	.output()
         .expect("Failed to execute process");
+    // look in to child process struct
     io::stdout().write_all(&pacstrap.stdout).unwrap();
     io::stderr().write_all(&pacstrap.stderr).unwrap();
 }
