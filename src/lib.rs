@@ -27,6 +27,7 @@
 //! * find a solution for configuring the new base system
 //! * Implement toml support
 
+use std::io::{BufRead, BufReader};
 use std::io::{self, Write};
 use std::process::{Command, Stdio};
 pub(crate) mod user_ops;
@@ -112,11 +113,15 @@ Sudoers File: {}",
     let mut pacstrap = Command::new("/usr/bin/pacstrap")
         .args(install_list)
 	.stdout(Stdio::piped())
-	.output()
+	.spawn()
         .expect("Failed to execute process");
     // look in to child process struct
-    io::stdout().write_all(&pacstrap.stdout).unwrap();
-    io::stderr().write_all(&pacstrap.stderr).unwrap();
+    let mut child_out = BufReader::new(pacstrap.stdout.as_mut().unwrap());
+    let mut line = String::new();
+    loop {
+	child_out.read_line(&mut line).unwrap();
+	println!("{}", line);
+    }
 }
 #[allow(dead_code)]
 fn user_survay() -> UserSellection {
