@@ -82,7 +82,6 @@ Sudoers File: {}",
         } else {
             break;
         }
-
     }
 
     let mirrorlist = choices.clone();
@@ -92,27 +91,30 @@ Sudoers File: {}",
     println!("Partitioning Drives");
     crate::parted::format(choices.drives.clone()).unwrap();
     let mount = Command::new("/usr/bin/mount")
-	.args(&[&choices.drives.root_sys_id, "/mnt"])
-	.output()
-	.expect("Failed to execute process");
+        .args(&[&choices.drives.root_sys_id, "/mnt"])
+        .output()
+        .expect("Failed to execute process");
     io::stdout().write_all(&mount.stdout).unwrap();
     io::stderr().write_all(&mount.stderr).unwrap();
 
-    let swap_on = Command::new("/usr/bin/swapon")
-	.arg(&choices.drives.swap_id)
-	.output()
-	.expect("Failed to execute process");
-    io::stdout().write_all(&swap_on.stdout).unwrap();
-    io::stderr().write_all(&swap_on.stderr).unwrap();
-    let _install_list: Vec<String> = BASIC_INSTALL_BIOS.split_whitespace().map(|x| x.to_string()).collect();
+    if choices.drives.format_swap {
+        let swap_on = Command::new("/usr/bin/swapon")
+            .arg(&choices.drives.swap_id)
+            .output()
+            .expect("Failed to execute process");
+        io::stdout().write_all(&swap_on.stdout).unwrap();
+        io::stderr().write_all(&swap_on.stderr).unwrap();
+    }
+    let install_list: Vec<String> = BASIC_INSTALL_BIOS
+        .split_whitespace()
+        .map(|x| x.to_string())
+        .collect();
     let pacstrap = Command::new("/usr/bin/pacstrap")
-	.args(&["/mnt", BASIC_INSTALL_BIOS])
-	.output()
-	.expect("Failed to execute process");
+        .args(install_list)
+        .output()
+        .expect("Failed to execute process");
     io::stdout().write_all(&pacstrap.stdout).unwrap();
     io::stderr().write_all(&pacstrap.stderr).unwrap();
-    
-
 }
 #[allow(dead_code)]
 fn user_survay() -> UserSellection {
@@ -176,11 +178,7 @@ pub(crate) fn fdisk_output() {
 pub(crate) fn to_mib(x: String) -> u32 {
     //! converts the given String to the appropriate size value
     let mut x_clone = x.clone();
-    let sufix_value = if x.len() == 0 {
-	return 0
-    }else {
-    x.len() - 1
-    };
+    let sufix_value = if x.len() == 0 { return 0 } else { x.len() - 1 };
     let disk_size: String = x_clone.drain(..sufix_value).collect();
     let x = disk_size.parse::<u32>().unwrap();
     let n = match x_clone.as_str() {
@@ -193,6 +191,3 @@ pub(crate) fn to_mib(x: String) -> u32 {
     };
     n
 }
-
-
-
