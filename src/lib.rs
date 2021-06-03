@@ -26,17 +26,17 @@
 //! * find a solution for configuring the new base system
 //! * Implement toml support
 
-use std::io::{BufRead, BufReader};
 use std::io::{self, Write};
+use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
 pub(crate) mod user_ops;
 pub(crate) use crate::user_ops::UserSellection;
 pub(crate) mod menus;
 pub(crate) mod packages;
 pub(crate) mod parted;
-use crate::packages::BASIC_INSTALL_BIOS;
 
 pub fn run() {
+    let install_list = packages::BASIC_INSTALL_BIOS;
     let mut choices = user_survay();
     choices.drives.build_drive_ids();
     loop {
@@ -105,23 +105,26 @@ Sudoers File: {}",
         io::stdout().write_all(&swap_on.stdout).unwrap();
         io::stderr().write_all(&swap_on.stderr).unwrap();
     }
-    let install_list: Vec<String> = BASIC_INSTALL_BIOS
+    let install_list: Vec<String> = install_list
         .split_whitespace()
         .map(|x| x.to_string())
         .collect();
     let mut pacstrap = Command::new("/usr/bin/pacstrap")
         .args(install_list)
-	.stdout(Stdio::piped())
-	.spawn()
+        .stdout(Stdio::piped())
+        .spawn()
         .expect("Failed to execute process");
     // look in to child process struct
     let mut child_out = BufReader::new(pacstrap.stdout.as_mut().unwrap());
+        let mut line = String::new();
     loop {
-    let mut line = String::new();
-	child_out.read_line(&mut line).unwrap();
-	println!("{}", line);
+	line.clear();
+        child_out.read_line(&mut line).unwrap();
+        println!("{}", line);
+        if line == "".to_string(){
+            break;
+        }
     }
-    // find way to break loop when process finished
 }
 #[allow(dead_code)]
 fn user_survay() -> UserSellection {
@@ -152,7 +155,7 @@ fn user_survay() -> UserSellection {
     answers
 }
 
-pub fn ask_for_input(message: &str) -> String {
+pub(crate) fn ask_for_input(message: &str) -> String {
     //! Ask the user for confirmation and returns the result
     println!("{}", message);
     let mut response = String::new();
