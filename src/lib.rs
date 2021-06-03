@@ -19,7 +19,6 @@
 //! * create wrapper for chroot
 //! * add guard to prevent user from erasing a disk what has existing partitions without confirmation
 //! * add option for user to have different home partition format
-//! * guard mirror menus against usesr error
 //! * make dynamic menu to only show relevent items
 //! * refactor menu for user sellect to be more moduler
 //! * create const for basic pacman.conf
@@ -117,11 +116,10 @@ Sudoers File: {}",
         .expect("Failed to execute process");
     // look in to child process struct
     let mut child_out = BufReader::new(pacstrap.stdout.as_mut().unwrap());
-    let mut line = String::new();
     loop {
+    let mut line = String::new();
 	child_out.read_line(&mut line).unwrap();
 	println!("{}", line);
-	line.clear();
     }
     // find way to break loop when process finished
 }
