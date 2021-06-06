@@ -36,33 +36,38 @@ See rali.conf(5) for more details
 * OPTIONS 
   *--PACKAGE_LIST=*​/<file>/​\\ 
   Replaces the default package list with a user specified one.
-#+BEGIN_MAN
-.PP
-#+END_MAN
-  *--conf=*​/<file>/\\  
-  Use an alternate config file.
-#+BEGIN_MAN
-.PP
-#+END_MAN
-  *--conf-gen* /path,/to,/file/\\
-  Parses your system and generates a basic rali.conf file for you.
+# #+BEGIN_MAN
+# .PP
+# #+END_MAN
+#   *--conf=*​/<file>/\\  
+#   Use an alternate config file.
+# #+BEGIN_MAN
+# .PP
+# #+END_MAN
+#   *--conf-gen* /path/to/file/\\
+#   Parses your system and generates a basic rali.conf file for you.
 #+BEGIN_MAN
 .PP
 #+END_MAN
   *--UEFI=*​/y,/n/\\
-  If set to y configures your system for UEFI. For BIOS set to n or leave blank
+  If set to y configures your system for UEFI. For BIOS set to n. If left blank you will be prompted by the program.
 #+BEGIN_MAN
 .PP
 #+END_MAN
-  *-E*\\
-  If pressent encription will be used
-** Encryption (-E)
-   *-l*
-   rali will create a single boot partitoin and a LUKS encrypted /root partition
-#+BEGIN_MAN
-.PP
-#+END_MAN
-   *-L*
-   rali will create a single boot partition and an LVM encrypted volume with virtual volums ontop.
+  *--basic, -b* \\
+  Installs the most basic Arch Linux system. No user, man pages, or info pages; just the bootloader, base, the kernel, and vim.
+# #+BEGIN_MAN
+# .PP
+# #+END_MAN
+#   *-E*\\
+#   If pressent encription will be used
+# ** Encryption (-E)
+#    *-l*
+#    rali will create a single boot partitoin and a LUKS encrypted /root partition
+# #+BEGIN_MAN
+# .PP
+# #+END_MAN
+#    *-L*
+#    rali will create a single boot partition and an LVM encrypted volume with virtual volums ontop.
 ** Exit Codes
    (4) wrong boot mode; user chose to exit program.

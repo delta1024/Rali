@@ -66,4 +66,22 @@ impl Users {
         };
         self
     }
+    /// sets user passwords.
+    /// ```compile_fail
+    /// let n = user_ops::users::Users{
+    ///  user_name: String::from("user"),
+    ///  user_pass: String::from("1234"),
+    ///  user_ops::users::Users.default(),
+    /// };
+    /// let m = user_ops::users::Users{
+    /// user_name: String::from("root"),
+    ///  user_pass: String::from("1234"),
+    /// user_ops::users::User::default(),
+    /// };
+    ///
+    /// user_ops::set_user_pass(n, m);
+    /// ```
+    pub(crate) fn _set_user_pass(&self) -> std::io::Result<()> {
+        Ok(())
+    }
 }

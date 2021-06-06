@@ -15,16 +15,14 @@
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! RALI aimes to make the installation and redeployment of an arch based system as painless as possible.
 //! # TODO
-//! * create wrapper for parted
 //! * create wrapper for chroot
-//! * add guard to prevent user from erasing a disk what has existing partitions without confirmation
+//! * finialise install optoins linke system name and other personalisations for arch install
 //! * add option for user to have different home partition format
 //! * make dynamic menu to only show relevent items
 //! * refactor menu for user sellect to be more moduler
 //! * create const for basic pacman.conf
-//! * Define logic for what drive goes where
-//! * find a solution for configuring the new base system
 //! * Implement toml support
+//! * Create dynamic command string function and test in chroot
 
 use std::io::{self, Write};
 use std::io::{BufRead, BufReader};
@@ -116,15 +114,17 @@ Sudoers File: {}",
         .expect("Failed to execute process");
     // look in to child process struct
     let mut child_out = BufReader::new(pacstrap.stdout.as_mut().unwrap());
-        let mut line = String::new();
+    let mut line = String::new();
     loop {
-	line.clear();
+        line.clear();
         child_out.read_line(&mut line).unwrap();
         println!("{}", line);
-        if line == "".to_string(){
+        if line == "".to_string() {
             break;
         }
     }
+    println!("Generating fstab");
+    user_ops::sysops::gen_fstab().unwrap();
 }
 #[allow(dead_code)]
 fn user_survay() -> UserSellection {
@@ -152,6 +152,8 @@ fn user_survay() -> UserSellection {
     //     .sudoer_question()
     //     .pass_question();
     // answers.set_root_pass();
+    // answers
+    // .get_timezone()
     answers
 }
 

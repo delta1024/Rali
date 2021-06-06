@@ -1,18 +1,3 @@
-\" <RALI - Rali, the Arch Linux Installer>
-\" Copyright (c) <2021>  <Jacob Stannix>
-
-\" this program is free software: you can redistribute it and/or modify
-\" it under the terms of the gnu general public license as published by
-\" the free software foundation, either version 3 of the license, or
-\" (at your option) any later version.
-
-\" this program is distributed in the hope that it will be useful,
-\" but without any warranty; without even the implied warranty of
-\" merchantability or fitness for a particular purpose.  see the
-\" gnu general public license for more details.
-
-\" you should have received a copy of the gnu general public license
-\" along with this program.  if not, see <https://www.gnu.org/licenses/>.
 .TH "RALI" "1" "2021-05-25" "GNU/Linux" "RALI.0.1.0" 
 .SH "NAME"
 .PP
@@ -34,34 +19,17 @@ See rali.conf(5) for more details
 \fB--PACKAGE\d\s-2LIST\s+2\u=\fP​\fI<file>\fP​
 .br
 Replaces the default package list with a user specified one.
-.PP
-.PP
-\fB--conf=\fP​\fI<file>\fP
-.br
-Use an alternate config file.
-.PP
-.PP
-\fB--conf-gen\fP \fIpath,/to,/file\fP
-.br
-Parses your system and generates a basic rali.conf file for you.
+
 .PP
 .PP
 \fB--UEFI=\fP​\fIy,/n\fP
 .br
-If set to y configures your system for UEFI. For BIOS set to n or leave blank
+If set to y configures your system for UEFI. For BIOS set to n. If left blank you will be prompted by the program.
 .PP
 .PP
-\fB-E\fP
+\fB--basic, -b\fP 
 .br
-If pressent encription will be used
-.SS "Encryption (-E)"
-.PP
-\fB-l\fP
-rali will create a single boot partitoin and a LUKS encrypted /root partition
-.PP
-.PP
-\fB-L\fP
-rali will create a single boot partition and an LVM encrypted volume with virtual volums ontop.
+Installs the most basic Arch Linux system. No user, man pages, or info pages; just the bootloader, base, the kernel, and vim.
 .SS "Exit Codes"
 .PP
 (4) wrong boot mode; user chose to exit program.

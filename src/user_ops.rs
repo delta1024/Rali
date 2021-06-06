@@ -18,12 +18,13 @@
 use crate::{answer_to_bool, ask_for_input};
 pub(crate) mod drives;
 use curl::easy::Easy;
-use drives::Drives;
 use rpassword::prompt_password_stdout;
 pub(crate) mod users;
 use self::MirrorOptions::*;
+pub(crate) mod sysops;
 use regex::Regex;
 use users::Users;
+
 /// Houses options for fetching user personalised mirrorlist
 #[derive(Clone)]
 pub(crate) enum MirrorOptions {
@@ -42,14 +43,13 @@ pub enum FileSysType {
     Swap,
 }
 impl ToString for FileSysType {
-    fn to_string(&self) -> String{
-	match self {
-	    &FileSysType::Ext4 => String::from("ext4"),
-	    &FileSysType::Ext3 => String::from("ext3"),
-	    &FileSysType::Btrfs => String::from("btrfs"),
-	    &FileSysType::Swap => String::from("Swap"),
-	}
-	
+    fn to_string(&self) -> String {
+        match self {
+            &FileSysType::Ext4 => String::from("ext4"),
+            &FileSysType::Ext3 => String::from("ext3"),
+            &FileSysType::Btrfs => String::from("btrfs"),
+            &FileSysType::Swap => String::from("Swap"),
+        }
     }
 }
 impl FileSysType {
@@ -74,14 +74,16 @@ pub(crate) struct UserSellection {
     /// holds mirror information
     pub(crate) mirrors: Vec<MirrorOptions>,
     /// holds user drive config
-    pub(crate) drives: Drives,
+    pub(crate) drives: drives::Drives,
     /// holds user config
     pub(crate) users: Users,
     /// holds root user config
     pub(crate) root: Users,
+    /// holds system configuration options
+    pub(crate) sys: sysops::SysConf,
 }
 impl UserSellection {
-    pub fn set_root_pass(&mut self) -> &mut Self {
+    pub(crate) fn set_root_pass(&mut self) -> &mut Self {
         let root_pass = loop {
             let first_go = prompt_password_stdout("Please enter desired root password:").unwrap();
             let second_go =
@@ -130,15 +132,13 @@ impl UserSellection {
         }
         let mirrorlist = String::from_utf8(data).unwrap();
         let re = Regex::new(r"(?m)^#").unwrap();
-	let mirrorlist = re.replace_all(&mirrorlist, "");
-	
+        let mirrorlist = re.replace_all(&mirrorlist, "");
+
         mirrorlist.to_string()
     }
-}
 
-impl UserSellection {
-    #[allow(dead_code)]
     pub(crate) fn edit(&mut self) -> &mut Self {
         crate::menus::user_ops::print_menu(self)
     }
 }
+

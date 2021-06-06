@@ -14,8 +14,8 @@
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! Holds menu for mirror list selection
-use crate::user_ops::MirrorOptions;
 use crate::ask_for_input;
+use crate::user_ops::MirrorOptions;
 use crate::user_ops::UserSellection;
 
 const MAIN_MENU: &str = "1) all
