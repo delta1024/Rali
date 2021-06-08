@@ -13,11 +13,12 @@
 //
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
+// along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! This module houses all of the system configuration options for the user
 use std::fs;
 use std::io::{self, Write};
 use std::process::Command;
-use crate::menus::sysops as menu;
+use crate::menus::timezones;
 #[derive(Default, Clone)]
 pub(crate) struct SysConf {
     time_zone: String,
@@ -25,8 +26,10 @@ pub(crate) struct SysConf {
     network_config: Vec<(String, String)>,
 }
 impl SysConf {
-    pub(crate) fn _get_time_zone(&mut self) -> &mut Self {
-        todo!();
+    pub(crate) fn get_time_zone(&mut self) -> std::io::Result<&mut Self> {
+	timezones::print_menu("/usr/share/zoneinfo")?;
+	Ok(self)
+	
     }
     pub(crate) fn _get_local(&mut self) -> &mut Self {
         todo!();
