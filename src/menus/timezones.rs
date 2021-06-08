@@ -14,32 +14,59 @@
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 use std::fs;
-use std::path::Path;
-pub(crate) fn print_menu(items: &str) -> std::io::Result<Vec<String>> {
+fn num_list(items: Vec<String>) -> Vec<String> {
+    let mut num = 0;
+    let items = items
+        .iter()
+        .map(|s| {
+            num += 1;
+            format!("{}) {}", num, s)
+        })
+        .collect();
+    items
+}
+fn list_fils_as_vec(path: &str) -> Vec<String> {
+    
     let mut files = Vec::new();
-    if let Ok(entries) = fs::read_dir(items) {
+    if let Ok(entries) = fs::read_dir(path) {
         for entry in entries {
             if let Ok(entry) = entry {
                 files.push(entry.file_name().into_string().unwrap());
             }
         }
-    }
+    };
+    files
+}
+pub(crate) fn print_menu(items: &str) -> Vec<String> {
+    let mut files = list_fils_as_vec(items);
     files.sort();
-    let mut num = 1;
-    let mut output = Vec::new();
-    for i in &files {
-        output.push(format!("{}) {}", num, i));
-        num += 1;
-    }
+    let file_vec = files.clone();
+
+    let output = num_list(files);
+    for i in output {
+	println!("{}", i);
+    };
+    file_vec
+}
+pub(crate) fn print_menu_thirds(items: &str) -> std::io::Result<Vec<String>> {
+    let mut files = list_fils_as_vec(items);
+    files.sort();
+
+    let file_vec = files.clone();
+
+    let mut output = num_list(files);
+
     let mut second = output.clone();
     let mut third = output.clone();
-    every_1st(&mut output);
-    every_2nd(&mut second);
-    every_3rd(&mut third);
+
+    every_nth(&mut output, -1, 3);
+    every_nth(&mut second, -2, 3);
+    every_nth(&mut third, 0, 3);
 
     let mut n2 = second.iter();
     let mut n3 = third.iter();
     let mut menu = Vec::new();
+
     for i in output {
         let mut string = String::new();
         string.push_str(&i);
@@ -55,29 +82,16 @@ pub(crate) fn print_menu(items: &str) -> std::io::Result<Vec<String>> {
         }
         menu.push(string);
     }
+
     for i in menu {
-	println!("{}", i);
+        println!("{}", i);
     }
-    Ok(files)
+    Ok(file_vec)
 }
-fn every_1st(values: &mut Vec<String>) {
-    let mut c = -1;
+fn every_nth(values: &mut Vec<String>, start_value: i32, incriment: i32) {
+    let mut c = start_value;
     values.retain(|_| {
         c += 1;
-        return c % 3 == 0;
-    })
-}
-fn every_2nd(values: &mut Vec<String>) {
-    let mut c = -2;
-    values.retain(|_| {
-        c += 1;
-        return c % 3 == 0;
-    });
-}
-fn every_3rd(values: &mut Vec<String>) {
-    let mut c = 0;
-    values.retain(|_| {
-        c += 1;
-        return c % 3 == 0;
+        return c % incriment == 0;
     });
 }

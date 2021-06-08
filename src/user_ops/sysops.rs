@@ -27,7 +27,7 @@ pub(crate) struct SysConf {
 }
 impl SysConf {
     pub(crate) fn get_time_zone(&mut self) -> std::io::Result<&mut Self> {
-	timezones::print_menu("/usr/share/zoneinfo")?;
+	timezones::print_menu_thirds("/usr/share/zoneinfo")?;
 	Ok(self)
 	
     }

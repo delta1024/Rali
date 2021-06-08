@@ -15,6 +15,7 @@
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! RALI aimes to make the installation and redeployment of an arch based system as painless as possible.
 //! # TODO
+//! * finish timezone setting
 //! * create wrapper for chroot
 //! * finialise install optoins linke system name and other personalisations for arch install
 //! * add option for user to have different home partition format
