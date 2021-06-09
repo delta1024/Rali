@@ -18,7 +18,8 @@
 use std::fs;
 use std::io::{self, Write};
 use std::process::Command;
-use crate::menus::timezones;
+use std::path::Path;
+use crate::{ask_for_input, menus::timezones};
 #[derive(Default, Clone)]
 pub(crate) struct SysConf {
     time_zone: String,
@@ -27,7 +28,21 @@ pub(crate) struct SysConf {
 }
 impl SysConf {
     pub(crate) fn get_time_zone(&mut self) -> std::io::Result<&mut Self> {
-	timezones::print_menu_thirds("/usr/share/zoneinfo")?;
+	let mut zone = String::from("/usr/share/zoneinfo"); 
+	let zones = timezones::print_menu_thirds(&zone)?;
+	
+	let answer = ask_for_input("please select a timezone").parse::<usize>().unwrap() - 1;
+	zone.push_str(format!("/{}", zones[answer]).as_str());
+
+	if Path::new(&zone).is_dir() {
+	    let zones = timezones::print_menu(&zone);
+	    let answer = ask_for_input("").parse::<usize>().unwrap() - 1;
+	    zone.push_str(format!("/{}", zones[answer]).as_str());
+	    self.time_zone = zone;
+	}else{
+	    self.time_zone = zone;
+	}
+	println!("{}", self.time_zone);
 	Ok(self)
 	
     }
