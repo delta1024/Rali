@@ -15,52 +15,79 @@
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! This module houses all of the system configuration options for the user
+use crate::{ask_for_input, menus::{timezones, local}};
 use std::fs;
 use std::io::{self, Write};
-use std::process::Command;
 use std::path::Path;
-use crate::{ask_for_input, menus::timezones};
+use std::process::Command;
 #[derive(Default, Clone)]
 pub(crate) struct SysConf {
-    time_zone: String,
-    localization: Vec<(String, String)>,
-    network_config: Vec<(String, String)>,
+    pub(crate) time_zone: String,
+    pub(crate) localization: Vec<(String, String)>,
+    network_config: String,
 }
 impl SysConf {
     pub(crate) fn get_time_zone(&mut self) -> std::io::Result<&mut Self> {
-	let mut zone = String::from("/usr/share/zoneinfo"); 
-	let zones = timezones::print_menu_thirds(&zone)?;
-	
-	let answer = ask_for_input("please select a timezone").parse::<usize>().unwrap() - 1;
-	zone.push_str(format!("/{}", zones[answer]).as_str());
+        let mut zone = String::from("/usr/share/zoneinfo");
+        let zones = timezones::print_menu_thirds(&zone)?;
 
-	if Path::new(&zone).is_dir() {
-	    let zones = timezones::print_menu(&zone);
-	    let answer = ask_for_input("").parse::<usize>().unwrap() - 1;
-	    zone.push_str(format!("/{}", zones[answer]).as_str());
-	    self.time_zone = zone;
-	}else{
-	    self.time_zone = zone;
-	}
-	println!("{}", self.time_zone);
-	Ok(self)
-	
+        let answer = ask_for_input("please select a timezone")
+            .parse::<usize>()
+            .unwrap()
+            - 1;
+        zone.push_str(format!("/{}", zones[answer]).as_str());
+
+        if Path::new(&zone).is_dir() {
+            let zones = timezones::print_menu(&zone);
+            let answer = ask_for_input("").parse::<usize>().unwrap() - 1;
+            zone.push_str(format!("/{}", zones[answer]).as_str());
+            self.time_zone = zone;
+        } else {
+            self.time_zone = zone;
+        }
+        Ok(self)
     }
-    pub(crate) fn _get_local(&mut self) -> &mut Self {
-        todo!();
+
+    pub(crate) fn get_local(&mut self) -> &mut Self {
+	let choice = local::print_menu_thirds();
+	let vecs = local::print_menu(choice);
+	self.localization = vecs;
+	self
     }
-    pub(crate) fn _get_net_conf(&mut self) -> &mut Self {
-        todo!();
+
+    pub(crate) fn get_net_conf(&mut self) -> &mut Self {
+        self.network_config = ask_for_input("Please enter desired hostname");
+        self
     }
-    pub(crate) fn _set_timezone(_zone: String) -> std::io::Result<()> {
+
+    pub(crate) fn set_timezone(&self) -> std::io::Result<()> {
+        let mut arch_chroot = Command::new("/usr/bin/arch-chroot");
+        arch_chroot
+            .args(&["/mnt", "/usr/bin/ln", "-sf", &self.time_zone, "/etc/localtime"])
+            .spawn()
+            .expect("Failed to execute process");
+	let hwclock = arch_chroot
+	    .args(&["/mnt", "/usr/bin/hwclock", "--systohc"])
+	    .output()
+	    .expect("Failed to execute process");
+	io::stdout().write_all(&hwclock.stdout)?;
         Ok(())
     }
 
     pub(crate) fn _set_local(_locals: Vec<(String, String)>) -> std::io::Result<()> {
         Ok(())
     }
-    pub(crate) fn _set_net_conf(_netconf: Vec<(String, String)>) -> std::io::Result<()> {
-	Ok(())
+
+    pub(crate) fn set_net_conf(&self) -> std::io::Result<()> {
+        std::fs::write("/mnt/etc/hostname", &self.network_config)?;
+        let net_hosts = format!(
+            "127.0.0.1       localhost	
+::1             localhost
+127.0.1.1	{}.localdomain	{}",
+            self.network_config, self.network_config
+        );
+        std::fs::write("/mnt/etc/hosts", net_hosts)?;
+        Ok(())
     }
 }
 /// Generates the fstab for the new system
@@ -70,8 +97,6 @@ pub(crate) fn gen_fstab() -> std::io::Result<()> {
         .output()
         .expect("Failed to execute process");
     io::stdout().write_all(&genfstab.stdout)?;
-    println!("writing to disk");
-    fs::write("/etc/fstab", genfstab.stdout)?;
+    fs::write("/mnt/etc/fstab", genfstab.stdout)?;
     Ok(())
 }
-

@@ -20,3 +20,23 @@ pub(crate) mod mirrors;
 pub(crate) mod sysops;
 pub(crate) mod user_ops;
 pub(crate) mod timezones;
+pub(crate) mod local;
+
+pub(in crate::menus) fn num_list(items: Vec<String>) -> Vec<String> {
+    let mut num = 0;
+    let items = items
+        .iter()
+        .map(|s| {
+            num += 1;
+            format!("{}) {}", num, s)
+        })
+        .collect();
+    items
+}
+pub(in crate::menus) fn every_nth(values: &mut Vec<String>, start_value: i32, incriment: i32) {
+    let mut c = start_value;
+    values.retain(|_| {
+        c += 1;
+        return c % incriment == 0;
+    });
+}

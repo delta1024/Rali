@@ -27,7 +27,7 @@
 
 use std::io::{self, Write};
 // use std::io::{BufRead, BufReader};
-use std::process::Command;// use std::process::{Command, Stdio};
+use std::process::Command; // use std::process::{Command, Stdio};
 pub(crate) mod user_ops;
 pub(crate) use crate::user_ops::UserSellection;
 pub(crate) mod menus;
@@ -36,7 +36,7 @@ pub(crate) mod parted;
 
 pub fn run() {
     // let install_list = packages::BASIC_INSTALL_BIOS;
-    let choices = user_survay();//mut choices = user_survay();
+    let mut choices = user_survay();
 //     choices.drives.build_drive_ids();
 //     loop {
 //         let read_out = format!(
@@ -54,7 +54,8 @@ pub fn run() {
 // Home Partition Id: {}
 // User Name: {}
 // Wheel Group: {}
-// Sudoers File: {}",
+// Sudoers File: {}
+// Timezone: {}",
 //             choices.drives.drive_id,
 //             choices.drives.gpt_with_bios,
 //             choices.drives.gpt_boot_part,
@@ -69,7 +70,8 @@ pub fn run() {
 //             choices.drives.home_id,
 //             choices.users.user_name,
 //             choices.users.is_wheel,
-//             choices.users.is_sudoer
+//             choices.users.is_sudoer,
+//             choices.sys.time_zone,
 //         );
 
 //         println!("{}", read_out);
@@ -83,49 +85,57 @@ pub fn run() {
 //         }
 //     }
 
-//     let mirrorlist = choices.clone();
-//     println!("Downloading mirrorlist");
-//     let mirrorlist = mirrorlist.make_mirror_list();
-//     std::fs::write("/etc/pacman.d/mirrorlist", mirrorlist).unwrap();
-//     println!("Partitioning Drives");
-//     crate::parted::format(choices.drives.clone()).unwrap();
-//     let mount = Command::new("/usr/bin/mount")
-//         .args(&[&choices.drives.root_sys_id, "/mnt"])
-//         .output()
-//         .expect("Failed to execute process");
-//     io::stdout().write_all(&mount.stdout).unwrap();
-//     io::stderr().write_all(&mount.stderr).unwrap();
+    //     let mirrorlist = choices.clone();
+    //     println!("Downloading mirrorlist");
+    //     let mirrorlist = mirrorlist.make_mirror_list();
+    //     std::fs::write("/etc/pacman.d/mirrorlist", mirrorlist).unwrap();
+    //     println!("Partitioning Drives");
+    //     crate::parted::format(choices.drives.clone()).unwrap();
+    //     let mount = Command::new("/usr/bin/mount")
+    //         .args(&[&choices.drives.root_sys_id, "/mnt"])
+    //         .output()
+    //         .expect("Failed to execute process");
+    //     io::stdout().write_all(&mount.stdout).unwrap();
+    //     io::stderr().write_all(&mount.stderr).unwrap();
 
-//     if choices.drives.format_swap {
-//         let swap_on = Command::new("/usr/bin/swapon")
-//             .arg(&choices.drives.swap_id)
-//             .output()
-//             .expect("Failed to execute process");
-//         io::stdout().write_all(&swap_on.stdout).unwrap();
-//         io::stderr().write_all(&swap_on.stderr).unwrap();
-//     }
-//     let install_list: Vec<String> = install_list
-//         .split_whitespace()
-//         .map(|x| x.to_string())
-//         .collect();
-//     let mut pacstrap = Command::new("/usr/bin/pacstrap")
-//         .args(install_list)
-//         .stdout(Stdio::piped())
-//         .spawn()
-//         .expect("Failed to execute process");
-//     // look in to child process struct
-//     let mut child_out = BufReader::new(pacstrap.stdout.as_mut().unwrap());
-//     let mut line = String::new();
-//     loop {
-//         line.clear();
-//         child_out.read_line(&mut line).unwrap();
-//         println!("{}", line);
-//         if line == "".to_string() {
-//             break;
-//         }
-//     }
-//     println!("Generating fstab");
-//     user_ops::sysops::gen_fstab().unwrap();
+    //     if choices.drives.format_swap {
+    //         let swap_on = Command::new("/usr/bin/swapon")
+    //             .arg(&choices.drives.swap_id)
+    //             .output()
+    //             .expect("Failed to execute process");
+    //         io::stdout().write_all(&swap_on.stdout).unwrap();
+    //         io::stderr().write_all(&swap_on.stderr).unwrap();
+    //     }
+    //     let install_list: Vec<String> = install_list
+    //         .split_whitespace()
+    //         .map(|x| x.to_string())
+    //         .collect();
+    //     let mut pacstrap = Command::new("/usr/bin/pacstrap")
+    //         .args(install_list)
+    //         .stdout(Stdio::piped())
+    //         .spawn()
+    //         .expect("Failed to execute process");
+    //     // look in to child process struct
+    //     let mut child_out = BufReader::new(pacstrap.stdout.as_mut().unwrap());
+    //     let mut line = String::new();
+    //     loop {
+    //         line.clear();
+    //         child_out.read_line(&mut line).unwrap();
+    //         println!("{}", line);
+    //         if line == "".to_string() {
+    //             break;
+    //         }
+    //     }
+    //     println!("Generating fstab");
+    //     user_ops::sysops::gen_fstab().unwrap();
+    //     choices.set_net_conf().unwrap();
+    //     choices.set_local().unwrap();
+    // choices.sys.set_timezone().unwrap();
+    // choices.sys.set_net_conf().unwrap();
+    // choices.sys.set_local().unwrap();
+    for (i, a) in choices.sys.localization {
+	println!{"{}{}", i, a}
+    }
 }
 #[allow(dead_code)]
 fn user_survay() -> UserSellection {
@@ -153,9 +163,8 @@ fn user_survay() -> UserSellection {
     //     .sudoer_question()
     //     .pass_question();
     // answers.set_root_pass();
-    // answers
-    // .get_timezone()
-    answers.sys.get_time_zone().unwrap();
+    // answers.sys.get_time_zone().unwrap().get_net_conf();//.get_local();
+    answers.sys.get_local();
     answers
 }
 

@@ -19,156 +19,207 @@ use crate::{ask_for_input, UserSellection};
 const PROMPT: &str = "Please select an option";
 
 /// Option 1 in basic setup review menu
-const DRIVE_MENU: &str = "1) Main Drive Id
-2) GPT with Bios
-3) exit";
+const DRIVE_MENU: [&str; 3] = ["Main Drive Id", "GPT with Bios", "exit"];
 
 /// Option 2 in basic setup review menu
-const SWAP_MENU: &str = "1) Swap Partition
-2) Swap Size
-3) exit";
+const SWAP_MENU: [&str; 3] = ["Swap Partition", "Swap Size", "exit"];
 /// Option 3 in basic setup review menu
-const ROOT_MENU: &str = "1) Root File System Size
-2) Root File System Format
-3) exit";
+const ROOT_MENU: [&str; 3] = ["Root File System Size", "Root File System Format", "exit"];
 /// Option 4 in basic setup review menu
-const HOME_MENU: &str = "1) Seperate Home Partition
-2) Seperate User Home Partition
-3) Home Partion Id
-4) exit";
+const HOME_MENU: [&str; 4] = [
+    "Seperate Home Partition",
+    "Seperate User Home Partition",
+    "Home Partion Id",
+    "exit",
+];
 /// Option 5 in basic setup review menu
-const USER_MENU: &str = "1) User Name
-2) Wheel Group
-3) Sudoers File
-4) Passwords
-5) exit";
+const USER_MENU: [&str; 5] = [
+    "User Name",
+    "Wheel Group",
+    "Sudoers File",
+    "Passwords",
+    "exit",
+];
 /// sub-options for Option 5
-const PASSWORDS: &str = "1) User Account
-2) Root Account
-3) exit";
+const PASSWORDS: [&str; 3] = ["User Account", "Root Account", "exit"];
 /// basic setup review menu
-const SECTIONS: &str = "1)
+const SECTIONS: [&str; 7] = [
+    "
 Main Drive Id
-GPT with Bios
-2)
+GPT with Bios",
+    "
 Swap Partition
 Swap Size
-Swap Id
-3)
+Swap Id",
+    "
 Root File System 
 Root File System Size
-Root File System Format
-4)
+Root File System Format",
+    "
 Seperate Home Partition
 Seperate User Home Partition
-Home Partion Id
-5)
+Home Partion Id",
+    "
 User Name
 Wheel Group
 Sudoers File
-Passwords
-6) exit";
+Passwords",
+    "Timezones",
+    "exit",
+];
 pub(crate) fn print_menu(select: &mut UserSellection) -> &mut UserSellection {
-    let sections = [
-        PROMPT, SECTIONS, DRIVE_MENU, SWAP_MENU, ROOT_MENU, HOME_MENU, USER_MENU, PASSWORDS,
-    ];
+    let  main_menu = num_list(SECTIONS.to_vec());
     loop {
-        println!("{}", sections[1]);
-        let check = ask_for_input(sections[0]);
-        match check.as_str() {
+        for i in &main_menu {
+            println!("{}", i);
+        }
+        let check = ask_for_input(PROMPT).parse::<usize>().unwrap();
+        match check {
             // drive menu
-            "1" => {
-                loop {
-                    println!("{}", sections[2]);
-                    let check = ask_for_input(sections[0]);
-                    match check.as_str() {
-                        "1" => select.drives.drive_questions(),
-                        "2" => select.drives.drive_gpt(),
-                        "3" => break,
-                        _ => continue,
-                    };
-                }
+            1 => {
+                print_sub_list_drive_menu(select);
                 continue;
             }
             // swap menu
-            "2" => {
-                loop {
-                    println!("{}", sections[3]);
-                    let check = ask_for_input(sections[0]);
-                    match check.as_str() {
-                        "1" => select.drives.swap_part_question(),
-                        "2" => select.drives.swap_size_set(),
-                        "3" => break,
-                        _ => continue,
-                    };
-                }
+            2 => {
+                print_sub_list_swap_menu(select);
                 continue;
             }
             // root menu
-            "3" => {
-                loop {
-                    println!("{}", sections[4]);
-                    let check = ask_for_input(sections[0]);
-                    match check.as_str() {
-                        "1" => select.drives.root_sys_questions_size(),
-                        "2" => select.drives.root_sys_question_format(),
-                        "3" => break,
-                        _ => continue,
-                    };
-                }
+            3 => {
+                print_sub_list_root_menu(select);
                 continue;
             }
             // home menu
-            "4" => {
-                loop {
-                    println!("{}", sections[0]);
-                    println!("{}", sections[5]);
-                    let check = ask_for_input("");
-                    match check.as_str() {
-                        "1" => select.drives.home_questions_sep_part(),
-                        "2" => select.drives.home_questions_have_another_home_part(),
-                        "3" => select.drives.home_part_custom_set(),
-                        "4" => break,
-                        _ => continue,
-                    };
-                }
+            4 => {
+                print_sub_list_home_menu(select);
                 continue;
             }
-            "5" => {
-                loop {
-                    println!("{}", sections[6]);
-                    let check = ask_for_input(sections[0]);
-                    match check.as_str() {
-                        "1" => select.users.name_question(),
-                        "2" => select.users.wheel_question(),
-                        "3" => select.users.sudoer_question(),
-                        "4" => {
-                            loop {
-                                println!("{}", sections[7]);
-                                let check = ask_for_input(sections[0]);
-                                match check.as_str() {
-                                    "1" => {
-                                        select.users.pass_question();
-                                        continue;
-                                    }
-                                    "2" => {
-                                        select.set_root_pass();
-                                        continue;
-                                    }
-                                    "3" => break,
-                                    _ => continue,
-                                }
-                            }
-                            continue;
-                        }
-                        "5" => break,
-                        _ => continue,
-                    };
-                }
+            5 => {
+                print_sub_list_user_menu(select);
                 continue;
             }
 
-            "6" => break select,
+            6 => {
+		select.sys.get_time_zone().unwrap();
+		continue;
+	    }
+	    7 => break select,
+            _ => continue,
+        }
+    }
+}
+/// numbers list
+fn num_list(items: Vec<&str>) -> Vec<String> {
+    let mut num = 0;
+    let items = items
+        .iter()
+        .map(|s| {
+            num += 1;
+            format!("{}) {}", num, s)
+        })
+        .collect();
+    items
+}
+fn print_sub_list_drive_menu(user: &mut UserSellection) {
+    let menu = num_list(DRIVE_MENU.to_vec());
+    loop {
+        for i in &menu {
+            println!("{}", i);
+        }
+        let check = ask_for_input(PROMPT).parse::<usize>().unwrap();
+        match check {
+            1 => user.drives.drive_questions(),
+            2 => user.drives.drive_gpt(),
+            3 => break,
+            _ => continue,
+        };
+    }
+}
+fn print_sub_list_swap_menu(user: &mut UserSellection) {
+    let menu = num_list(SWAP_MENU.to_vec());
+    loop {
+        for i in &menu {
+            println!("{}", i);
+        }
+        let check = ask_for_input(PROMPT);
+        match check.as_str() {
+            "1" => user.drives.swap_part_question(),
+            "2" => user.drives.swap_size_set(),
+            "3" => break,
+            _ => continue,
+        };
+    }
+}
+
+fn print_sub_list_root_menu(user: &mut UserSellection) {
+    let menu = num_list(ROOT_MENU.to_vec());
+    loop {
+        for i in &menu {
+            println!("{}", i);
+        }
+        let check = ask_for_input(PROMPT).parse::<usize>().unwrap();
+        match check {
+            1 => user.drives.root_sys_questions_size(),
+            2 => user.drives.root_sys_question_format(),
+            3 => break,
+            _ => continue,
+        };
+    }
+}
+fn print_sub_list_home_menu(user: &mut UserSellection) {
+    let menu = num_list(HOME_MENU.to_vec());
+    loop {
+        for i in &menu {
+            println!("{}", i);
+        }
+        let check = ask_for_input(PROMPT).parse::<usize>().unwrap();
+        match check {
+            1 => user.drives.home_questions_sep_part(),
+            2 => user.drives.home_questions_have_another_home_part(),
+            3 => user.drives.home_part_custom_set(),
+            4 => break,
+            _ => continue,
+        };
+    }
+}
+fn print_sub_list_user_menu(user: &mut UserSellection) {
+    let menu = num_list(USER_MENU.to_vec());
+    loop {
+	for i in &menu {
+	    println!("{}", i);
+	}
+        let check = ask_for_input(PROMPT).parse::<usize>().unwrap();
+        match check{
+            1 => user.users.name_question(),
+            2 => user.users.wheel_question(),
+            3 => user.users.sudoer_question(),
+            4 => {
+                print_sub_list_passmenu(user);
+                continue;
+            }
+            5 => break,
+            _ => continue,
+        };
+    }
+}
+fn print_sub_list_passmenu(user: &mut UserSellection) {
+    let menu = num_list(PASSWORDS.to_vec());
+    loop {
+        for i in &menu {
+            println!("{}", i);
+        }
+        let check = ask_for_input(PROMPT).parse::<usize>().unwrap();
+        match check {
+            1 => {
+                user.users.pass_question();
+                continue;
+            }
+            2 => {
+                user.set_root_pass();
+                continue;
+            }
+            3 => break,
             _ => continue,
         }
     }

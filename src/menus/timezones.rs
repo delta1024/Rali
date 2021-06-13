@@ -14,17 +14,7 @@
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 use std::fs;
-fn num_list(items: Vec<String>) -> Vec<String> {
-    let mut num = 0;
-    let items = items
-        .iter()
-        .map(|s| {
-            num += 1;
-            format!("{}) {}", num, s)
-        })
-        .collect();
-    items
-}
+use crate::menus::{num_list, every_nth};
 fn list_fils_as_vec(path: &str) -> Vec<String> {
     
     let mut files = Vec::new();
@@ -87,11 +77,4 @@ pub(crate) fn print_menu_thirds(items: &str) -> std::io::Result<Vec<String>> {
         println!("{}", i);
     }
     Ok(file_vec)
-}
-fn every_nth(values: &mut Vec<String>, start_value: i32, incriment: i32) {
-    let mut c = start_value;
-    values.retain(|_| {
-        c += 1;
-        return c % incriment == 0;
-    });
 }
