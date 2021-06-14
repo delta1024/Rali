@@ -21,6 +21,7 @@ pub(crate) mod sysops;
 pub(crate) mod user_ops;
 pub(crate) mod timezones;
 pub(crate) mod local;
+pub(in crate::menus) mod lang_vars;
 
 pub(in crate::menus) fn num_list(items: Vec<String>) -> Vec<String> {
     let mut num = 0;

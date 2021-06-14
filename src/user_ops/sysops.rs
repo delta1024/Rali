@@ -23,7 +23,7 @@ use std::process::Command;
 #[derive(Default, Clone)]
 pub(crate) struct SysConf {
     pub(crate) time_zone: String,
-    pub(crate) localization: Vec<(String, String)>,
+    pub(crate) localization: Vec<String>,
     network_config: String,
 }
 impl SysConf {
@@ -49,7 +49,7 @@ impl SysConf {
     }
 
     pub(crate) fn get_local(&mut self) -> &mut Self {
-	let choice = local::print_menu_thirds();
+	let choice = local::print_main_menu_thirds();
 	let vecs = local::print_menu(choice);
 	self.localization = vecs;
 	self

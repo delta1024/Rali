@@ -13,13 +13,17 @@
 //
 // you should have received a copy of the gnu general public license
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
-use crate::menus::{num_list, every_nth};
+use crate::ask_for_input;
+use crate::menus::lang_vars as lav;
+use crate::menus::{every_nth, num_list};
+use regex::Regex;
 use std::fs::File;
 use std::io::Read;
-use crate::ask_for_input;
-use regex::Regex;
-const MAIN_MENU: [&str; 26] = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]; 
-pub(crate) fn print_menu_thirds() -> usize {
+const MAIN_MENU: [&str; 26] = [
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s",
+    "t", "u", "v", "w", "x", "y", "z",
+];
+pub(crate) fn print_main_menu_thirds() -> usize {
     let mut output = num_list(MAIN_MENU.to_vec().iter().map(|s| s.to_string()).collect());
     let mut second = output.clone();
     let mut thrid = output.clone();
@@ -54,84 +58,216 @@ pub(crate) fn print_menu_thirds() -> usize {
     answer - 1
 }
 
-fn strip_comments(file: String) -> String {
-    let rc = Regex::new(r"(?m)^#").unwrap();
-    let stripted = rc.replace_all(&file, "");
-    stripted.to_string()
+pub(crate) fn print_menu(letter: usize) -> Vec<String> {
+    let menu_match = which_menu(letter.clone());
+    let answer = sort_menu(menu_match);
+    for i in answer {
+        println!("{}", i);
+    }
+    let answer = parse_answer(ask_for_input(
+        "please select you lang variables\ne.g. 1 2 3 ect",
+    ));
+    let last_one = fetch_lang(answer, letter);
+
+    last_one
 }
 
-fn get_locals() -> String  {
-    let mut  locals = File::open("/etc/locale.gen").unwrap();
-    let mut contents = String::new();
-    locals.read_to_string(&mut contents).unwrap();
-    contents
-}
+fn format_vec_l20(menu: Vec<&str>) -> Vec<String> {
+    let mut first = num_list(menu.iter().map(|x| x.to_string()).collect());
+    let mut second = first.clone();
 
-pub(crate) fn print_menu(letter: usize) -> Vec<(String, String)> {
-    let choice = MAIN_MENU[letter];
-    let mut locals = Locals::new(strip_comments(get_locals()));
-    locals.activate(choice);
-    vec![(locals.header, locals.contents), (locals.active, String::new())]
-}
+    every_nth(&mut first, -1, 2);
+    every_nth(&mut second, 0, 2);
 
-#[derive(Default)]
-struct Locals {
-    header: String,
-    contents: String,
-    active: String,
+    let mut second = second.iter();
+
+    let mut menu = Vec::new();
+    for i in first {
+        let mut string = String::from(&i);
+        string.push_str("  ");
+
+        match second.next() {
+            Some(l) => string.push_str(l),
+            None => string.push(' '),
+        }
+        menu.push(string)
+    }
+    menu
 }
-impl Locals {
-    fn new(file: String) -> Locals {
-	let rs = Regex::new(r"(?m)^aa_DJ.UTF-8 UTF-8").unwrap();
-	let mut split = rs.split(&file);
-	let header = split.next().unwrap().to_string();
-	let mut contents = String::from("aa_DJ.UTF-8 UTF-8\n");
-	contents.push_str(split.next().unwrap().trim());
-	Locals {
-	    header,
-	    contents,
-	    ..Locals::default()
+fn format_vec_l30(menu: Vec<&str>) -> Vec<String> {
+    let mut first = num_list(menu.iter().map(|s| s.to_string()).collect());
+    let mut second = first.clone();
+    let mut third = first.clone();
+
+    every_nth(&mut first, -1, 3);
+    every_nth(&mut second, -2, 3);
+    every_nth(&mut third, 0, 3);
+
+    let mut second = second.iter();
+    let mut third = third.iter();
+
+    let mut menu = Vec::new();
+    for i in first {
+	let mut string = String::from(&i);
+	string.push_str("  ");
+	match second.next() {
+	    Some(l) => string.push_str(l),
+	    None => string.push(' '),
 	}
-    }
-    fn activate(&mut self, letter: &str) {
-	let rs = regex_set(letter);
-	let n = rs.captures(&self.contents).unwrap().name("letter");
-	let mut output = String::new();
-	match n {
-	    Some(a) => output.push_str(a.as_str()),
-	    None => panic!(""),
+
+	string.push_str("  ");
+	match third.next() {
+	    Some(l) => string.push_str(l),
+	    None => string.push(' '),
 	}
-	self.active = output;
+	menu.push(string);
     }
+    menu
+}
+fn format_vec_l40(menu: Vec<&str>) -> Vec<String> {
+    let mut first = num_list(menu.iter().map(|s| s.to_string()).collect());
+    let mut second = first.clone();
+    let mut third = first.clone();
+    let mut fourth = first.clone();
+
+    every_nth(&mut first, -1, 4);
+    every_nth(&mut second, -2, 4);
+    every_nth(&mut third, -3, 4);
+    every_nth(&mut fourth, 0, 4);
+
+    let mut second = second.iter();
+    let mut third = third.iter();
+    let mut fourth = fourth.iter();
+
+    let mut menu = Vec::new();
+    for i in first {
+	let mut string = String::from(&i);
+	string.push_str("  ");
+	match second.next() {
+	    Some(l) => string.push_str(l),
+	    None => string.push(' '),
+	}
+
+	string.push_str("  ");
+	match third.next() {
+	    Some(l) => string.push_str(l),
+	    None => string.push(' '),
+	}
+
+	string.push_str("  ");
+	match fourth.next() {
+	    Some(l) => string.push_str(l),
+	    None => string.push(' '),
+	}
+	menu.push(string);
+    }
+    menu
+}
+fn format_vec_o50(menu: Vec<&str>) -> Vec<String> {
+    let mut first = num_list(menu.iter().map(|s| s.to_string()).collect());
+    let mut second = first.clone();
+    let mut third = first.clone();
+    let mut fourth = first.clone();
+    let mut fifth = first.clone();
+
+    every_nth(&mut first, -1, 5);
+    every_nth(&mut second, -2, 5);
+    every_nth(&mut third, -3, 5);
+    every_nth(&mut fourth, -4, 5);
+    every_nth(&mut fifth, 0, 5);
+
+    let mut second = second.iter();
+    let mut third = third.iter();
+    let mut fourth = fourth.iter();
+    let mut fifth = fifth.iter();
+
+    let mut menu = Vec::new();
+    for i in first {
+	let mut string = String::from(&i);
+	string.push_str("  ");
+	match second.next() {
+	    Some(l) => string.push_str(l),
+	    None => string.push(' '),
+	}
+
+	string.push_str("  ");
+	match third.next() {
+	    Some(l) => string.push_str(l),
+	    None => string.push(' '),
+	}
+
+	string.push_str("  ");
+	match fourth.next() {
+	    Some(l) => string.push_str(l),
+	    None => string.push(' '),
+	}
+
+	string.push_str("  ");
+	match fifth.next() {
+	    Some(l) => string.push_str(l),
+	    None => string.push(' '),
+	}
+	menu.push(string);
+    }
+    menu
+}
+fn fetch_lang(_input: Vec<usize>, _catagory: usize) -> Vec<String> {
+    let mut last_one = Vec::new();
+    last_one.push(String::new());
+    last_one
 }
 
-fn regex_set(answer: &str) -> Regex {
-    match answer {
-	"a" => Regex::new(r"(?m)^[a+?].+").unwrap(),
-	"b" => Regex::new(r"(?m)b*$").unwrap(),
-	"c" => Regex::new(r"(?m)c*$").unwrap(),
-	"d" => Regex::new(r"(?m)d*$").unwrap(),
-	"e" => Regex::new(r"(?m)e*$").unwrap(),
-	"f" => Regex::new(r"(?m)f*$").unwrap(),
-	"g" => Regex::new(r"(?m)g*$").unwrap(),
-	"h" => Regex::new(r"(?m)h*$").unwrap(),
-	"i" => Regex::new(r"(?m)i*$").unwrap(),
-	"j" => Regex::new(r"(?m)j*$").unwrap(),
-	"k" => Regex::new(r"(?m)k*$").unwrap(),
-	"l" => Regex::new(r"(?m)l*$").unwrap(),
-	"m" => Regex::new(r"(?m)m*$").unwrap(),
-	"n" => Regex::new(r"(?m)n*$").unwrap(),
-	"o" => Regex::new(r"(?m)o*$").unwrap(),
-	"p" => Regex::new(r"(?m)p*$").unwrap(),
-	"q" => Regex::new(r"(?m)q*$").unwrap(),
-	"r" => Regex::new(r"(?m)r*$").unwrap(),
-	"s" => Regex::new(r"(?m)s*$").unwrap(),
-	"t" => Regex::new(r"(?m)t*$").unwrap(),
-	"v" => Regex::new(r"(?m)v*$").unwrap(),
-	"w" => Regex::new(r"(?m)w*$").unwrap(),
-	"x" => Regex::new(r"(?m)x*$").unwrap(),
-	"y" => Regex::new(r"(?m)y*$").unwrap(),
-	"z" => Regex::new(r"(?m)z*$").unwrap(),
-	_ => panic!("unexpected variable"),
+fn parse_answer(answer: String) -> Vec<usize> {
+    let mut vec_string = Vec::new();
+    for i in answer.split_whitespace() {
+        vec_string.push(i.parse::<usize>().unwrap() - 1);
     }
+    vec_string
+}
+
+fn which_menu<'a>(index: usize) -> Vec<&'a str> {
+    match index {
+        0 => lav::LANG_A.to_vec(),
+        1 => lav::LANG_B.to_vec(),
+        2 => lav::LANG_C.to_vec(),
+        3 => lav::LANG_D.to_vec(),
+        4 => lav::LANG_E.to_vec(),
+        5 => lav::LANG_F.to_vec(),
+        6 => lav::LANG_G.to_vec(),
+        7 => lav::LANG_H.to_vec(),
+        8 => lav::LANG_I.to_vec(),
+        9 => lav::LANG_J.to_vec(),
+        10 => lav::LANG_K.to_vec(),
+        11 => lav::LANG_L.to_vec(),
+        12 => lav::LANG_M.to_vec(),
+        13 => lav::LANG_N.to_vec(),
+        14 => lav::LANG_O.to_vec(),
+        15 => lav::LANG_P.to_vec(),
+        16 => lav::LANG_Q.to_vec(),
+        17 => lav::LANG_R.to_vec(),
+        18 => lav::LANG_S.to_vec(),
+        19 => lav::LANG_T.to_vec(),
+        20 => lav::LANG_U.to_vec(),
+        21 => lav::LANG_V.to_vec(),
+        22 => lav::LANG_W.to_vec(),
+        23 => lav::LANG_X.to_vec(),
+        24 => lav::LANG_Y.to_vec(),
+        25 => lav::LANG_Z.to_vec(),
+        _ => panic!("invalid option"),
+    }
+}
+fn sort_menu(menu: Vec<&str>) -> Vec<String> {
+    let num = menu.iter().count();
+    let colums = if num <= 20 {
+        num_list(menu.iter().map(|s| s.to_string()).collect())
+    } else if num >= 21 && num <= 30 {
+        format_vec_l20(menu)
+    } else if num >= 31 && num <= 40 {
+        format_vec_l30(menu)
+    } else if num >= 41 && num <= 50 {
+        format_vec_l40(menu)
+    } else {
+        format_vec_o50(menu)
+    };
+    colums
 }

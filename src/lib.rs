@@ -133,8 +133,8 @@ pub fn run() {
     // choices.sys.set_timezone().unwrap();
     // choices.sys.set_net_conf().unwrap();
     // choices.sys.set_local().unwrap();
-    for (i, a) in choices.sys.localization {
-	println!{"{}{}", i, a}
+    for i in choices.sys.localization {
+	println!{"{}", i}
     }
 }
 #[allow(dead_code)]
