@@ -1,1 +1,1 @@
-{"version":1,"ops":[{"type":1,"author":{"id":"dc72199b4715ee5e2fc989f1444a764f8b94b6ea"},"timestamp":1623020394,"title":"Mirror Select list exits unexpectedly","message":"","files":null}]}
+{"version":1,"ops":[{"type":8,"author":{"id":"dc72199b4715ee5e2fc989f1444a764f8b94b6ea"},"timestamp":1623714624,"target":"3fe47f3a5287ed79b98ac66857c6458d445f6a8a12c643a120583e958a47eeb6","new_metadata":{"github-id":"MDU6SXNzdWU5MjA4NTk0MzA=","github-url":"https://github.com/delta1024/Rali/issues/1"}}]}
