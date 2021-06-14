@@ -16,9 +16,6 @@
 use crate::ask_for_input;
 use crate::menus::lang_vars as lav;
 use crate::menus::{every_nth, num_list};
-use regex::Regex;
-use std::fs::File;
-use std::io::Read;
 const MAIN_MENU: [&str; 26] = [
     "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s",
     "t", "u", "v", "w", "x", "y", "z",
@@ -94,6 +91,7 @@ fn format_vec_l20(menu: Vec<&str>) -> Vec<String> {
     }
     menu
 }
+
 fn format_vec_l30(menu: Vec<&str>) -> Vec<String> {
     let mut first = num_list(menu.iter().map(|s| s.to_string()).collect());
     let mut second = first.clone();
@@ -124,6 +122,7 @@ fn format_vec_l30(menu: Vec<&str>) -> Vec<String> {
     }
     menu
 }
+
 fn format_vec_l40(menu: Vec<&str>) -> Vec<String> {
     let mut first = num_list(menu.iter().map(|s| s.to_string()).collect());
     let mut second = first.clone();
@@ -163,6 +162,7 @@ fn format_vec_l40(menu: Vec<&str>) -> Vec<String> {
     }
     menu
 }
+
 fn format_vec_o50(menu: Vec<&str>) -> Vec<String> {
     let mut first = num_list(menu.iter().map(|s| s.to_string()).collect());
     let mut second = first.clone();
@@ -211,10 +211,15 @@ fn format_vec_o50(menu: Vec<&str>) -> Vec<String> {
     }
     menu
 }
-fn fetch_lang(_input: Vec<usize>, _catagory: usize) -> Vec<String> {
-    let mut last_one = Vec::new();
-    last_one.push(String::new());
-    last_one
+
+fn fetch_lang(input: Vec<usize>, catagory: usize) -> Vec<String> {
+    let sub_menu = which_menu(catagory);
+    let mut vectory = Vec::new();
+    for i in input {
+	let answer = sub_menu[i];
+	vectory.push(answer.to_string());
+    }
+    vectory
 }
 
 fn parse_answer(answer: String) -> Vec<usize> {

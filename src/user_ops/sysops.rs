@@ -17,7 +17,8 @@
 //! This module houses all of the system configuration options for the user
 use crate::{ask_for_input, menus::{timezones, local}};
 use std::fs;
-use std::io::{self, Write};
+use std::fs::File;
+use std::io::{self, Write, Read};
 use std::path::Path;
 use std::process::Command;
 #[derive(Default, Clone)]
@@ -74,8 +75,16 @@ impl SysConf {
         Ok(())
     }
 
-    pub(crate) fn _set_local(_locals: Vec<(String, String)>) -> std::io::Result<()> {
-        Ok(())
+    pub(crate) fn set_local(&self) -> std::io::Result<()> {
+	let mut file = File::open("/mnt/etc/locale.gen")?;
+	let mut contents = String::new();
+	file.read_to_string(&mut contents)?;
+	for i in &self.localization {
+	    contents.push_str(format!("{}\n", i).as_str());
+	}
+	let mut file = File::create("/mnt/etc/locale.gen")?;
+	file.write_all(contents.as_bytes())?;
+	Ok(())
     }
 
     pub(crate) fn set_net_conf(&self) -> std::io::Result<()> {

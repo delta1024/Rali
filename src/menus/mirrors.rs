@@ -117,6 +117,10 @@ const D_H: [&str; 10] = ["Denmark", "Ecuador", "Estonnia", "Finland", "France", 
 fn print_dh() -> String {
     let menu = num_list(D_H.to_vec());
     let answer = loop {
+	for i in &menu {
+	    println!("{}", i);
+	}
+	
         let answer = ask_for_input("").parse::<usize>().unwrap();
         match answer {
             1 => break "?country=DK".to_string(),
