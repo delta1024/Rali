@@ -85,8 +85,8 @@ impl SysConf {
 	let mut file = File::create("/mnt/etc/locale.gen")?;
 	file.write_all(contents.as_bytes())?;
 	let mut file = File::create("/mnt/etc/locale.conf")?;
-	let string = format!("lang={}", self.localization[0]).as_bytes();
-	file.write_all(string)?;
+	let string = format!("lang={}", self.localization[0]);
+	file.write_all(string.as_bytes())?;
 	Ok(())
     }
 
