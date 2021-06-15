@@ -1,17 +1,17 @@
 pkgname=rali-testing
 _pkgname=Rali
 pkgname_=rali
-pkgver=0.1.r110
+pkgver=0.1.r114
 pkgrel=1
 pkgdesc="Rust Arch Linux Installer"
 arch=(x86_64)
-url="https://gitlab.com/delta1024/Rali"
+url="https://github.com/delta1024/Rali"
 license=('GPL V3.0')
 depends=('parted' 'util-linux' 'curl' 'arch-install-scripts')
 makedepends=('git' 'cargo' 'rust') # 'bzr', 'git', 'mercurial' or 'subversion'
 provides=("${pkgname}")
 conflicts=("${pkgname}" 'rali')
-source=("git+$url#branch=testing")
+source=("git+$url#branch=working")
 md5sums=('SKIP')
 
 # Please refer to the 'USING VCS SOURCES' section of the PKGBUILD man page for

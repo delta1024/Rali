@@ -15,15 +15,15 @@
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! RALI aimes to make the installation and redeployment of an arch based system as painless as possible.
 //! # TODO
-//! * finish timezone setting
-//! * create wrapper for chroot
-//! * finialise install optoins linke system name and other personalisations for arch install
+//! * function to create user
+//! * imlement sudo configuratoin
+//! ** wheel group
+//! ** no wheel group
 //! * add option for user to have different home partition format
 //! * make dynamic menu to only show relevent items
 //! * refactor menu for user sellect to be more moduler
 //! * create const for basic pacman.conf
 //! * Implement toml support
-//! * Create dynamic command string function and test in chroot
 
 use std::io::{self, Write};
 use std::io::{BufRead, BufReader};
