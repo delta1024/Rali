@@ -80,10 +80,13 @@ impl SysConf {
 	let mut contents = String::new();
 	file.read_to_string(&mut contents)?;
 	for i in &self.localization {
-	    contents.push_str(format!("{}\n", i).as_str());
+	    contents.push_str(format!("{}\n", i));
 	}
 	let mut file = File::create("/mnt/etc/locale.gen")?;
 	file.write_all(contents.as_bytes())?;
+	let mut file = File::create("/mnt/etc/locale.conf")?;
+	let string = format!("lang={}", self.localization[0]).as_bytes();
+	file.write_all(string)?;
 	Ok(())
     }
 

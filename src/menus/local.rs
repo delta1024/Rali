@@ -47,7 +47,7 @@ pub(crate) fn print_main_menu_thirds() -> usize {
         menu.push(string);
     }
 
-    println!("Please select a catagory");
+    println!("Please select a catagory for your language variables");
     for i in menu {
         println!("{}", i);
     }

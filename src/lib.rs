@@ -15,10 +15,12 @@
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! RALI aimes to make the installation and redeployment of an arch based system as painless as possible.
 //! # TODO
+//! * when setting local explain to user what your doing
+//! * Document recent additions
 //! * function to create user
-//! * imlement sudo configuratoin
-//! ** wheel group
-//! ** no wheel group
+//! * imlement sudo configuration
+//!     * wheel group
+//!     * no wheel group
 //! * add option for user to have different home partition format
 //! * make dynamic menu to only show relevent items
 //! * refactor menu for user sellect to be more moduler
