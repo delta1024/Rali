@@ -15,7 +15,10 @@
 // along with this program.  if not, see <https://www.gnu.org/licenses/>
 //! RALI aimes to make the installation and redeployment of an arch based system as painless as possible.
 //! # TODO
-//! * when setting local explain to user what your doing
+//! * locale-gen doesn't output stdout
+//! * allow for user to choose there LANG=? varibale
+//! * allow user to sellect from more than one locale group
+//! * ask user if fstab is acceptable if not edit in vim or nano
 //! * Document recent additions
 //! * function to create user
 //! * imlement sudo configuration

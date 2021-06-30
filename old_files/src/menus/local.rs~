@@ -1,0 +1,69 @@
+// <RALI - Rali, the Arch Linux Installer>
+// Copyright (c) <2021>  <Jacob Stannix>
+//
+// this program is free software: you can redistribute it and/or modify
+// it under the terms of the gnu general public license as published by
+// the free software foundation, either version 3 of the license, or
+// (at your option) any later version.
+//
+// this program is distributed in the hope that it will be useful,
+// but without any warranty; without even the implied warranty of
+// merchantability or fitness for a particular purpose.  see the
+// gnu general public license for more details.
+//
+// you should have received a copy of the gnu general public license
+// along with this program.  if not, see <https://www.gnu.org/licenses/>
+use crate::menus::{num_list, every_nth};
+use std::fs::File;
+use std::io::Read;
+use crate::ask_for_input;
+use regex;
+const MAIN_MENU: [&str; 26] = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]; 
+pub(crate) fn print_menu_thirds() -> usize {
+    let mut output = num_list(MAIN_MENU.to_vec().iter().map(|s| s.to_string()).collect());
+    let mut second = output.clone();
+    let mut thrid = output.clone();
+    every_nth(&mut output, -1, 3);
+    every_nth(&mut second, -2, 3);
+    every_nth(&mut thrid, 0, 3);
+    let mut second = second.iter();
+    let mut third = thrid.iter();
+    let mut menu = Vec::new();
+
+    for i in output {
+        let mut string = String::new();
+        string.push_str(&i);
+        string.push_str("  ");
+        match second.next() {
+            Some(l) => string.push_str(l),
+            None => string.push(' '),
+        }
+        string.push_str("  ");
+        match third.next() {
+            Some(l) => string.push_str(l),
+            None => string.push(' '),
+        }
+        menu.push(string);
+    }
+
+    println!("Please select a catagory for your lang");
+    for i in menu {
+        println!("{}", i);
+    }
+    let answer = ask_for_input("").parse::<usize>().unwrap();
+    answer - 1
+}
+fn get_locals() -> String  {
+    let mut  locals = File::open("/etc/locale.gen").unwrap();
+    let mut contents = String::new();
+    locals.read_to_string(&mut contents).unwrap();
+    contents
+}
+pub(crate) fn print_menu(letter: usize) -> Vec<(String, String)> {
+    let choice = MAIN_MENU[letter];
+    let locals = get_locals();
+
+    vec![(String::new(), String::new())]
+
+}
+

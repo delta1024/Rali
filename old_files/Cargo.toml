@@ -1,0 +1,38 @@
+# <RALI - Rali, the Arch Linux Installer>
+# Copyright (C) <2021>  <Jacob Stannix>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+[package]
+name = "rali"
+version = "0.1.8"
+authors = ["Jacob Stannix <jakestannix at gmail dot com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "rali"
+path = "src/main.rs"
+
+[dependencies]
+toml = "0.5"
+serde = { version = "1.0", features = ["derive"] }
+getopts = "0.2.21"
+mbrman = "0.4.0"
+# gptman = "0.8.0"
+# block-utils = "0.10.2"
+rpassword = "5.0.1"
+curl = "0.4.38"
+regex = "1.5.4"
+sysinfo = "0.18.0"
+#pacmanconf = "1.0.0"
